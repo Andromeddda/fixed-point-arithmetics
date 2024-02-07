@@ -123,8 +123,10 @@ bool LongNumber::operator> (const LongNumber& other) {
 	}
 
 	// If signs are equal, compare lengths of numbers
-	if (digits.size() != other.digits.size()) {
-		return (digits.size() > other.digits.size()) ^ (sign == -1);
+	size_t x_size = digits.size();
+	size_t y_size = other.digits.size();
+	if (x_size != y_size) {
+		return (x_size > y_size) ^ (sign == -1);
 	}
 
 	// If lengths and signs are equal, run through digits and compare
@@ -137,19 +139,19 @@ bool LongNumber::operator> (const LongNumber& other) {
 }
 
 bool LongNumber::operator>= (const LongNumber& other) {
-	return (*this > (LongNumber)other) || (*this == (LongNumber)other);
+	return (*this > other) || (*this == other);
 }
 
 bool LongNumber::operator< (const LongNumber& other) {
-	return !(*this >= (LongNumber)other);
+	return !(*this >= other);
 }
 
 bool LongNumber::operator<= (const LongNumber& other) {
-	return !(*this > (LongNumber)other);
+	return !(*this > other);
 }
 
 bool LongNumber::operator!= (const LongNumber& other) {
-	return !(*this == (LongNumber)other);
+	return !(*this == other);
 }
 
 ///////////////////////
@@ -167,8 +169,119 @@ LongNumber LongNumber::operator- () {
 	return result;
 }
 
-// LongNumber operator+ (const LongNumber& other);
-// LongNumber operator- (const LongNumber& other);
+LongNumber LongNumber::operator+ (const LongNumber& other) {
+	// If signs are different call operator-
+	if (sign != other.sign) {
+		if (sign == -1) {
+			return -((-(*this)) - other);
+		}
+		else {
+			return (*this - (LongNumber)(-other));
+		}
+	}
+
+	// Signs are equal
+	// Copy digits
+	vector<int> d1 = vector<int>(digits);
+	vector<int> d2 = vector<int>(other.digits);
+
+	size_t size = MAX(d1.size(), d2.size());
+
+	// Insert zeros in the front to balance sizes
+	if (d1.size() < size) {
+		d1.insert(d1.begin(), size - d1.size(), 0);
+	}
+	if (d2.size() < size) {
+		d2.insert(d2.begin(), size - d2.size(), 0);
+	}
+
+	// Create new LongNumber
+	LongNumber result;
+	result.digits = vector<int>(size, 0);
+	result.sign = sign;
+
+	// Go from the back and add digits and overflows
+	int overflow = 0;
+	for (int i = (int)size; i >= 0; --i) {
+		int sum = d1[i] + d2[i] + overflow;
+		result.digits[i] = sum % 10;
+		overflow = sum / 10;
+	}
+
+	// If first digit is also overflowed, insert overflow in the front
+	if (overflow != 0) {
+		result.digits.insert(result.digits.begin(), overflow);
+	}
+
+	return result;
+}
+
+LongNumber LongNumber::operator- (const LongNumber& other) {
+	// If numbers are equal, return zero from constructor
+	// so that it has positive sign
+	if (*this == other) return LongNumber();
+
+	// If signs are different call operator+
+	if (sign != other.sign) {
+		if (sign == -1) {
+			return -((-(*this)) + other);
+		}
+		else {
+			return (*this + (LongNumber)(-other));
+		}
+	}
+
+	// If both signs are negative, call operator- in different order
+	if (sign == -1) {
+		return (-other) - (-(*this));
+	}
+
+	// If both signs are positive
+	// Compare numbers
+	bool compare = ((*this) > other);
+
+	// Copy the biggest number
+	vector<int> d1 = vector<int>(compare ? digits : other.digits);
+
+	// Copy the smallest number
+	vector<int> d2 = vector<int>(compare ? other.digits : digits);
+
+	// Find new size to insert zeros in the front
+    size_t size = MAX(d1.size(), d2.size());
+
+    // Insert zeros in the front
+    if (d1.size() < size)
+    	d1.insert(d1.begin(), size - d1.size(), 0);
+    if (d2.size() < size)
+    	d2.insert(d2.begin(), size - d2.size(), 0);
+
+    // Create new number
+    LongNumber result;
+    result.sign = compare ? 1 : -1;
+    result.digits = vector<int>(size, 0);
+
+    // Run and subtract
+    int loan = 0; 
+    for (int i = size - 1; i >= 0; i--) {
+    	if (d1[i] - loan < d2[i]) {
+    		// Need to take extra 10 from next digit
+    		result.digits[i] = 10 + d1[i] - loan - d2[i];
+    		loan = 1;
+    	}
+    	else {
+    		result.digits[i] = d1[i] - loan - d2[i];
+    		loan = 0;
+    	}
+    }
+
+    // Remove zeros in the front
+    while (result.digits[0] == 0) {
+    	result.digits.erase(result.digits.begin());
+    }
+
+    return result;
+
+}
 // LongNumber operator* (const LongNumber& other);
 // LongNumber operator/ (const LongNumber& other);
 
@@ -185,27 +298,40 @@ void vector_print(const vector<int>& vec) {
 	std::cout << "} ";
 }
 
+// User-defined floating-point literal
+LongNumber operator""_ln(long double number) { 
+	return LongNumber(number);
+}
+
 // Return a string form of long number
-// string ToString(LongNumber& number) {
-// 	if (!number) return "0";
+string LongNumber::ToString() {
+	if (!(*this)) return "0";
 
-// 	string result = "";
-// 	vector<int> d = number.get_digits();
-// 	int size = d.size();
+	string result = "";
+	int size = digits.size();
 
-// 	int back_zeros = 0;
-// 	bool significant = false;
+	// Track leading zeros from the back of number
+	// So that we print for example 123.45 instead of 123.450000..000
+	bool significant = false;
 
-// 	for (int i = size - 1; i >= 0; i++) {
-// 		significant |= (d[i] != 0);
+	for (int i = (int)size - 1; i >= 0; --i) {
+		significant = significant || (digits[i] != 0);
 
-// 		if (!significant) ++back_zeros;
+		// Skip very leading zero
+		if (!significant) continue;
 
-// 		if (back_zeros > PRECISION) {
-// 			result = (char)(d[i] + '0') + result;
-// 		}
-// 		else {
-			
-// 		}
-// 	}
-// }
+		// Write every significant digit
+		result = (char)(digits[i] + '0') + result;
+
+		// Write a fixed point when we finish with (PRECISION) digits in the back
+		if (i == size - PRECISION) {
+			result = "." + result;
+		}
+	}
+
+	if (sign == -1) {
+		result = "-" + result;
+	}
+
+	return result;
+}

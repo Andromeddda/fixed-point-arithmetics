@@ -51,6 +51,9 @@ public:
 	LongNumber operator* (const LongNumber& other); // Karatsuba algorithm
 	LongNumber operator/ (const LongNumber& other); // Newton-Raphson method
 
+	// Return a string form of long number
+	string ToString();
+
 };
 
 ////////////////////////////////
@@ -60,5 +63,5 @@ public:
 // Print all elements of vector
 void vector_print(const vector<int>& vec);
 
-// Return a string form of long number
-string ToString(LongNumber& number);
+// User-defined floating-point literal
+LongNumber operator""_ln(long double number);

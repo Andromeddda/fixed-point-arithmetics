@@ -10,7 +10,11 @@ using namespace std;
 
 int main(void) {
 
-	LongNumber x = LongNumber("-12345.6789");
-	vector_print(x.get_digits());
+	LongNumber x = -123.4_ln;
+	LongNumber y = -234.51_ln;
+
+	LongNumber z = x + y;
+
+	cout << z.ToString() << endl;
 	return 0;
 }
