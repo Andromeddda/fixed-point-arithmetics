@@ -77,7 +77,7 @@ LongNumber::LongNumber(const string& str) {
 
 		// Check if current digit is significant
 		// (for 0.000088164 five zeros in the front are insignificant)
-		significant |= (str[index] != '0');
+		significant |= (str[index] != '0') || (count_points > 0);
 
 		// increase current precision if we already met the point
 		if (count_points > 0) ++cur_precision;
@@ -92,7 +92,6 @@ LongNumber::LongNumber(const string& str) {
 	}
 
 	digits.insert(digits.end(), (size_t)(PRECISION - cur_precision), 0);
-
 }
 
 // Construct from double
@@ -152,6 +151,15 @@ bool LongNumber::operator<= (const LongNumber& other) {
 
 bool LongNumber::operator!= (const LongNumber& other) {
 	return !(*this == other);
+}
+
+///////////////////////////
+// SIDE EFFECT OPERATORS //
+///////////////////////////
+LongNumber LongNumber::operator= (const LongNumber& other) {
+	sign = other.sign;
+	digits = vector<int>(other.digits);
+	return LongNumber(other);
 }
 
 ///////////////////////
@@ -274,14 +282,14 @@ LongNumber LongNumber::operator- (const LongNumber& other) {
     	}
     }
 
-    // Remove zeros in the front
-    while (result.digits[0] == 0) {
+    //Remove zeros in the front
+    while ((result.digits[0] == 0) && (result.digits.size() > PRECISION)) {
     	result.digits.erase(result.digits.begin());
     }
 
     return result;
-
 }
+
 LongNumber LongNumber::operator* (const LongNumber& other) {
 	// Create new LongNumber
 	LongNumber result;
@@ -289,28 +297,88 @@ LongNumber LongNumber::operator* (const LongNumber& other) {
 	// Calculate sign
 	result.sign = sign * other.sign;
 
-	// Copy other.digits to successfully put it in Karatsuba function
-	vector<int> other_digits = vector<int>(other.digits);
+	// Copy digits to successfully put it in Karatsuba function
+	vector<int> d1 = vector<int>(digits);
+	vector<int> d2 = vector<int>(other.digits);
+
+	// Remove zeros in the back to avoid multiplying zeros in Karatsuba()
+	int back_zeros = 0;
+	int i = d1.size() - 1;
+	int j = d2.size() - 1;
+	while ((back_zeros < PRECISION) && (d1[i] == 0) && (d2[j] == 0) && (d1.size() > 0) && (d2.size() > 0)) {
+		back_zeros++;
+		d1.pop_back();
+		d2.pop_back();
+		--i;
+		--j;
+	}
 
 	// Multiply 
-	result.digits = Karatsuba(digits, other_digits);
+	result.digits = Karatsuba(d1, d2);
 
-	// If two fixed-point numbers have lengths PRECISION+a and PRECISION+b,
-	// then their multiplication must have lenght PRECISION+a+b,
-	// but if we multiply two containers vector<int>, the output length will be 2*PRECISION+a+b
+	// If two fixed-point numbers have lengths PRECISION+a and PRECISION+b
+	// with N zeros in the back which we deleted,
+	// then their production must have lenght PRECISION+a+b,
+	// but when we multiply two vectors, the output length is 2*PRECISION-2*N + a + b
 
-	// Fix double precision
-	result.digits.erase(result.digits.end() - PRECISION, result.digits.end());
 
-	// Remove zeros in the front
-	while (result.digits[0] == 0) {
+	// Fix precision
+	if (PRECISION >= 2*back_zeros) {
+		// Round
+		if (result.digits[result.digits.size() - PRECISION + 2*back_zeros - 0] >= 5) {
+			result.digits[result.digits.size() - PRECISION + 2*back_zeros - 1] += 1;
+		}
+
+		result.digits.erase(result.digits.end() - PRECISION + 2*back_zeros, result.digits.end());
+	}
+	else if (PRECISION < 2*back_zeros) {
+		result.digits.insert(result.digits.end(), 2*back_zeros - PRECISION, 0);
+	}
+	
+	//Remove zeros in the front
+	while ((result.digits[0] == 0) && (result.digits.size() > PRECISION)) {
 		result.digits.erase(result.digits.begin());
 	}
 
 	return result;
 }
 
-// LongNumber operator/ (const LongNumber& other);
+LongNumber LongNumber::operator/ (LongNumber& other) {
+	VERIFY_CONTRACT(other, "ERROR: division by zero")
+
+	// if divisor is negative, inverse both numbers
+	if (other.sign == -1) {
+		return (-(*this))/((LongNumber)(-other));
+	}
+
+	// Divisor is positive now
+	
+	// Calculate first approximation
+	LongNumber X = 0.1_ln;
+	size_t size = other.digits.size();
+	if (size > PRECISION) {
+		// if other ~ 10^N, then X = 0.0...01 (N zeros total)
+		int N = size - PRECISION;
+
+		X.digits.erase(X.digits.end() - N + 1, X.digits.end());
+		X.digits.insert(X.digits.begin(), N - 1, 0);
+
+	}
+	else {
+		// if other ~ 10^-N, then X = 10...0 (N zeros total)
+		int N = 0;
+		while (other.digits[N] == 0) N++;
+		X.digits.insert(X.digits.end(), N + 2, 0);
+	}
+
+	for (int i = 0; i < NEWTON_RAPHSON_ITERATIONS; i++) {
+		LongNumber E = 2.0_ln - X*other;
+		LongNumber Y = X*E;
+		X.digits = vector<int>(Y.digits);
+	}
+
+	return (*this) * X;
+}
 
 ////////////////////////////////
 // UTILITIES FOR LONG NUMBERS //
@@ -322,7 +390,7 @@ void vector_print(const vector<int>& vec) {
 	for (size_t i = 0; i < vec.size(); i++) {
 		cout << vec[i] << ((i + 1 == vec.size()) ? "" : ", ");
 	}
-	std::cout << "} ";
+	std::cout << "} " << endl;
 }
 
 // User-defined floating-point literal
@@ -342,13 +410,15 @@ string LongNumber::ToString() {
 	bool significant = false;
 
 	for (int i = (int)size - 1; i >= 0; --i) {
-		significant = significant || (digits[i] != 0);
+		significant = significant || (digits[i] != 0) || (i <= size - PRECISION);
 
 		// Skip very leading zero
-		if (!significant) continue;
+		if (!significant) {
+			continue;
+		}
 
 		// Write every significant digit
-		result = (char)(digits[i] + '0') + result;
+		result = to_string(digits[i]) + result;
 
 		// Write a fixed point when we finish with (PRECISION) digits in the back
 		if (i == size - PRECISION) {
@@ -368,7 +438,10 @@ string LongNumber::ToString() {
 /////////////////////
 
 // Recursive multiplication of two vectors
-vector<int> Karatsuba(vector<int>& x, vector<int>& y) {
+vector<int> Karatsuba(vector<int>& X, vector<int>& Y) {
+	vector<int> x = vector<int>(X);
+	vector<int> y = vector<int>(Y);
+
 	size_t size = MAX(x.size(), y.size());
 
 	if (size < KARATSUBA_MIN_LEN) {

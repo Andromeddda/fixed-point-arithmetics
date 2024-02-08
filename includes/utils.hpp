@@ -64,5 +64,3 @@ using namespace std;
 	clock_t end = clock();																	\
 	std::cout << msg << (double)(end - start) * 1000.0 / CLOCKS_PER_SEC << "ms" << endl;	\
 	}
-
-#define KARATSUBA_MIN_LEN 50
