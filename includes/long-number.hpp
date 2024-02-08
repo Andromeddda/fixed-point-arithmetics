@@ -4,7 +4,7 @@ using namespace std;
 #include <vector>
 #include <string>
 
-#define PRECISION (10000)
+#define PRECISION (1000)
 
 // The number is represented as a big integer divided by 10^PRECISION 
 class LongNumber {
@@ -65,3 +65,20 @@ void vector_print(const vector<int>& vec);
 
 // User-defined floating-point literal
 LongNumber operator""_ln(long double number);
+
+
+/////////////////////
+// KARATSUBA UTILS //
+/////////////////////
+
+// Recursive multiplication of two vectors
+vector<int> Karatsuba(vector<int>& left, vector<int>& right);
+
+// Multiply two vector<int> with complixity O(n^2)
+vector<int> naive_multiplication(vector<int>& left, vector<int>& right);
+
+// overload addition of vectors
+vector<int> operator+ (const vector<int>& x, const vector<int>& y);
+
+// overload subtraction of vectors
+vector<int> operator- (const vector<int>& x, const vector<int>& y);

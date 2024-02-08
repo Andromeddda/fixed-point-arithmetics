@@ -49,7 +49,7 @@ using namespace std;
 // TIME UTILS  //
 // // // // // //
 
-#define TIMING(msg, func, ...)																\
+#define FUNC_TIMING(msg, func, ...)															\
 	{ 																						\
 	clock_t start = clock(); 																\
 	func(__VA_ARGS__); 																		\
@@ -57,4 +57,12 @@ using namespace std;
 	std::cout << msg << (double)(end - start) * 1000.0 / CLOCKS_PER_SEC << "ms" << endl;	\
 	}
 
-#define KARATSUBA_MIN_LEN 300
+#define EXEC_TIMING(msg, code) \
+	{ 																						\
+	clock_t start = clock(); 																\
+	code; 																					\
+	clock_t end = clock();																	\
+	std::cout << msg << (double)(end - start) * 1000.0 / CLOCKS_PER_SEC << "ms" << endl;	\
+	}
+
+#define KARATSUBA_MIN_LEN 50

@@ -282,7 +282,34 @@ LongNumber LongNumber::operator- (const LongNumber& other) {
     return result;
 
 }
-// LongNumber operator* (const LongNumber& other);
+LongNumber LongNumber::operator* (const LongNumber& other) {
+	// Create new LongNumber
+	LongNumber result;
+
+	// Calculate sign
+	result.sign = sign * other.sign;
+
+	// Copy other.digits to successfully put it in Karatsuba function
+	vector<int> other_digits = vector<int>(other.digits);
+
+	// Multiply 
+	result.digits = Karatsuba(digits, other_digits);
+
+	// If two fixed-point numbers have lengths PRECISION+a and PRECISION+b,
+	// then their multiplication must have lenght PRECISION+a+b,
+	// but if we multiply two containers vector<int>, the output length will be 2*PRECISION+a+b
+
+	// Fix double precision
+	result.digits.erase(result.digits.end() - PRECISION, result.digits.end());
+
+	// Remove zeros in the front
+	while (result.digits[0] == 0) {
+		result.digits.erase(result.digits.begin());
+	}
+
+	return result;
+}
+
 // LongNumber operator/ (const LongNumber& other);
 
 ////////////////////////////////
@@ -335,3 +362,159 @@ string LongNumber::ToString() {
 
 	return result;
 }
+
+/////////////////////
+// KARATSUBA UTILS //
+/////////////////////
+
+// Recursive multiplication of two vectors
+vector<int> Karatsuba(vector<int>& x, vector<int>& y) {
+	size_t size = MAX(x.size(), y.size());
+
+	if (size < KARATSUBA_MIN_LEN) {
+		return naive_multiplication(x, y);
+	}
+
+	size_t k = size / 2;
+
+	// Split vectors in two parts
+	auto mid_x = (x.size() > k) ? (x.end() - k) : x.begin();
+	auto mid_y = (y.size() > k) ? (y.end() - k) : y.begin();
+
+	vector<int> Xl {x.begin(), mid_x};
+	vector<int> Xr {mid_x, x.end()};
+	vector<int> Yl {y.begin(), mid_y};
+	vector<int> Yr {mid_y, y.end()};
+
+	// EXPLANATION OF KARARSUBA
+	// if 	x = Xl*q + Xr,
+	//	 	y = Yl*q + Yr, 
+	// where 
+	// 		q = 10^k, then 
+	//	 xy = 
+	// 		= qq*(Xl*Yl) + q*(Xl*Yr + Xr*Yl) + Xr*Yr =
+	//		= qq*P1 + q*P3 + P2
+	// where 
+	//		P1 = Xl*Yl
+	// 		P2 = Xr*Yr
+	//		P3 = (Xl + Xr)*(Yl + Yr) - P1 - P2
+
+	vector<int> P1 = Karatsuba(Xl, Yl);
+	vector<int> P2 = Karatsuba(Xr, Yr);
+
+	vector<int> Xlr = Xl + Xr;
+	vector<int> Ylr = Yl + Yr;
+
+	// Calculate P3
+	vector<int> P3 = Karatsuba(Xlr, Ylr) - P1 - P2;
+
+	// P1 = P1*qq
+	// P3 = P3*q
+	P1.insert(P1.end(), 2*k, 0);
+	P3.insert(P3.end(), k, 0);
+
+	vector<int> result = P1 + P3 + P2;
+
+	return result;
+}
+
+// Multiply two vector<int> with complixity O(n^2)
+vector<int> naive_multiplication(vector<int>& left, vector<int>& right) {
+
+	if (MIN(left.size(), right.size()) == 0) return vector<int>(1, 0);
+
+	// Create new vector<int>
+	size_t size = left.size() + right.size();
+	vector<int> result = vector<int>(size, 0);
+
+	// Run through and add
+	for (int i = left.size() - 1; i >= 0; --i) {
+		for (int j = right.size() - 1; j >= 0; --j) {
+			result[i + j + 1] += left[i]*right[j];
+		}
+	}
+
+	// fix digit overflow
+	for (int i = result.size() - 1; i > 0; --i) {
+		result[i - 1] += (result[i] >= 0) ? (result[i] / 10) : (result[i] / 10 - 1);
+		result[i] = (result[i] >= 0) ? (result[i] % 10) : (result[i] % 10 + 10);
+	}
+
+	return result;
+}
+
+// Overload addition of vectors
+vector<int> operator+ (const vector<int>& x, const vector<int>& y) {
+	// Copy
+	vector<int> d1 = vector<int>(x);
+	vector<int> d2 = vector<int>(y);
+
+	size_t size = MAX(d1.size(), d2.size());
+
+	// Insert zeros in the front
+    if (d1.size() < size)
+    	d1.insert(d1.begin(), size - d1.size(), 0);
+    if (d2.size() < size)
+    	d2.insert(d2.begin(), size - d2.size(), 0);
+
+    // Create new vector
+    vector<int> result = vector<int>(1 + size, 0);
+
+    // Go from the back and add
+    int overflow = 0, sum = 0;
+    for (int i = size - 1; i >= 0; i--) {
+    	sum = d1[i] + d2[i] + overflow;
+    	result[i+1] = sum % 10;
+    	overflow = sum / 10;
+    }
+
+    // Insert or pop the first digit
+    if (overflow != 0) {
+    	result[0] = overflow;
+    }
+    else {
+    	result.erase(result.begin());
+    }
+
+	return result;
+}
+
+// Overload subtraction of vectors
+vector<int> operator- (const vector<int>& x, const vector<int>& y) {
+	// Copy
+	vector<int> d1 = vector<int>(x);
+	vector<int> d2 = vector<int>(y);
+
+	size_t size = MAX(d1.size(), d2.size());
+
+	// Insert zeros in the front
+    if (d1.size() < size)
+    	d1.insert(d1.begin(), size - d1.size(), 0);
+    if (d2.size() < size)
+    	d2.insert(d2.begin(), size - d2.size(), 0);
+
+    // Create new vector
+    vector<int> result = vector<int>(size, 0);
+
+    // Run and subtract
+    int loan = 0; 
+    for (int i = size - 1; i >= 0; i--) {
+    	if (d1[i] - loan < d2[i]) {
+    		// Need to take extra 10 from next digit
+    		result[i] = 10 + d1[i] - loan - d2[i];
+    		loan = 1;
+    	}
+    	else {
+    		result[i] = d1[i] - loan - d2[i];
+    		loan = 0;
+    	}
+    }
+
+    // Remove first digit if it is 0
+    if (result[0] == 0) {
+    	result.erase(result.begin());
+    }
+
+	return result;
+}
+
