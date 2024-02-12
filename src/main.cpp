@@ -7,20 +7,23 @@ using namespace std;
 
 #include "utils.hpp"
 #include "long-number.hpp"
+#include "tests.hpp"
+#include "test_system.hpp"
+
+using namespace TestSystem;
 
 int main(void) {
-
-	LongNumber x = 10.0_ln;
-	LongNumber y = 20.0_ln;
-
-	clock_t start = clock();
-	LongNumber z = x / y;
-	clock_t end = clock();
-	std::cout << "PRECISION: " << PRECISION << "\nMIN KRATSUBA: " << KARATSUBA_MIN_LEN << "\nTIME: " << (double)(end - start) / CLOCKS_PER_SEC << "s" << endl;
-
-	cout << z.ToString() << endl;
-	a++;
-
+	run_test("empty constructor", 	test_empty_constructor);
+	run_test("copy constructor", 	test_copy_constructor);
+	run_test("string constructor",	test_string_constructor);
+	run_test("double constructor",	test_double_constructor);
+	run_test("ud-suffix", 			test_ud_suffix_constructor);
+	run_test("ToString() method", 	test_ToString);
+	run_test("unary minus ",		test_unary_minus);
+	run_test("addition", 			test_addition);
+	run_test("subtraction", 		test_subtraction);
+	run_test("multiplication", 		test_multiplication);
+	run_test("division", 			test_division);
 
 	return 0;
 }

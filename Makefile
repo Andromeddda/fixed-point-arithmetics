@@ -24,16 +24,20 @@ RESET   = \033[0m
 #-------
 
 INCLUDES = \
-	includes/long-number.hpp \
-	includes/utils.hpp
+	includes/long-number.hpp 	\
+	includes/utils.hpp			\
+	includes/test_system.hpp	\
+	includes/tests.hpp			
 
 # Add "include" folder to header search path:
 CFLAGS += -I $(abspath includes)
 
 # List of sources:
 SOURCES = \
-	main.cpp \
-	long-number.cpp
+	main.cpp 		\
+	long-number.cpp	\
+	test_system.cpp \
+	tests.cpp
 
 OBJECTS = $(SOURCES:%.cpp=build/%.o)
 

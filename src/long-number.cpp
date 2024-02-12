@@ -32,7 +32,7 @@ LongNumber::LongNumber() {
 }
 
 // Copy constructor
-LongNumber::LongNumber(LongNumber& other) {
+LongNumber::LongNumber(const LongNumber& other) {
 	// Copy sign
 	sign = other.sign; 
 	// Copy digits
@@ -296,7 +296,7 @@ LongNumber LongNumber::operator* (const LongNumber& other) {
 
 	// Calculate sign
 	result.sign = sign * other.sign;
-
+	
 	// Copy digits to successfully put it in Karatsuba function
 	vector<int> d1 = vector<int>(digits);
 	vector<int> d2 = vector<int>(other.digits);
@@ -325,7 +325,7 @@ LongNumber LongNumber::operator* (const LongNumber& other) {
 	// Fix precision
 	if (PRECISION >= 2*back_zeros) {
 		// Round
-		if (result.digits[result.digits.size() - PRECISION + 2*back_zeros - 0] >= 5) {
+if (result.digits[result.digits.size() - PRECISION + 2*back_zeros - 0] >= 5) {
 			result.digits[result.digits.size() - PRECISION + 2*back_zeros - 1] += 1;
 		}
 
@@ -343,13 +343,25 @@ LongNumber LongNumber::operator* (const LongNumber& other) {
 	return result;
 }
 
-LongNumber LongNumber::operator/ (LongNumber& other) {
-	VERIFY_CONTRACT(other, "ERROR: division by zero")
+LongNumber LongNumber::operator/ (const LongNumber& other) {
+	LongNumber D = LongNumber(other);
+
+	VERIFY_CONTRACT(D != 0.0_ln, "ERROR: division by zero");
 
 	// if divisor is negative, inverse both numbers
-	if (other.sign == -1) {
+	if (D.sign == -1) {
 		return (-(*this))/((LongNumber)(-other));
 	}
+
+	// Some trivial cases
+	if (D == 1.0_ln) return LongNumber(*this);
+	if (D == 2.0_ln) return (*this) * 0.5_ln;
+	if (D == 4.0_ln) return (*this) * 0.25_ln;
+	if (D == 8.0_ln) return (*this) * 0.125_ln;
+	if (D == 0.5_ln) return (*this) * 2.0_ln;
+	if (D == 10.0_ln) return (*this) * 0.1_ln;
+	if (D == 0.1_ln) return (*this) * 10.0_ln;
+
 
 	// Divisor is positive now
 	
@@ -371,7 +383,8 @@ LongNumber LongNumber::operator/ (LongNumber& other) {
 		X.digits.insert(X.digits.end(), N + 2, 0);
 	}
 
-	for (int i = 0; i < NEWTON_RAPHSON_ITERATIONS; i++) {
+	// The actual newton raphson's
+	for (int i = 0; i < NEWTON_RAPHSON_ITERATIONS_DIV; i++) {
 		LongNumber E = 2.0_ln - X*other;
 		LongNumber Y = X*E;
 		X.digits = vector<int>(Y.digits);

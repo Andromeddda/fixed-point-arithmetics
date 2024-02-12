@@ -13,7 +13,7 @@ using namespace std;
 
 #define VERIFY_CONTRACT(contract, message) 			\
 	if (!(contract)) { 								\
-		std::cout << message << std::endl; 			\
+		std::cout << SET_COLOR_RED << message << RESET_COLOR << std::endl; 			\
 		exit(1); 									\
 	}
 
@@ -28,9 +28,12 @@ using namespace std;
 // // // // // //
 // DEBUG UTILS //
 // // // // // //
-
-#define SET_COLOR_CYAN "\033[1;36m"
-#define RESET_COLOR "\033[0m"
+#define SET_COLOR_RED 		"\033[1;31m"
+#define SET_COLOR_GREEN 	"\033[1;32m"
+#define SET_COLOR_YELLOW 	"\033[1;33m"
+#define SET_COLOR_PURPLE 	"\033[1;35m"
+#define SET_COLOR_CYAN 		"\033[1;36m"
+#define RESET_COLOR 		"\033[0m"
 
 #define DEBUG_B \
 	std::cout << SET_COLOR_CYAN << "[===DEBUG===]: [" << __FUNCTION__ << \
@@ -62,5 +65,5 @@ using namespace std;
 	clock_t start = clock(); 																\
 	code; 																					\
 	clock_t end = clock();																	\
-	std::cout << msg << (double)(end - start) * 1000.0 / CLOCKS_PER_SEC << "ms" << endl;	\
+	std::cout << msg << " " <<(double)(end - start) / CLOCKS_PER_SEC << "s" << endl;	\
 	}

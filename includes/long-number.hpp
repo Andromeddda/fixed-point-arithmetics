@@ -6,7 +6,8 @@ using namespace std;
 
 #define PRECISION (1000)
 #define KARATSUBA_MIN_LEN (100)
-#define NEWTON_RAPHSON_ITERATIONS (14)
+#define NEWTON_RAPHSON_ITERATIONS_DIV (15)
+#define NEWTON_RAPHSON_ITERATIONS_SQRT (3)
 
 // The number is represented as a big integer divided by 10^PRECISION 
 class LongNumber {
@@ -27,7 +28,7 @@ public:
 	//////////////////
 
 	LongNumber(); 					// Construct 0.0
-	LongNumber(LongNumber& other); 	// Copy constructor
+	LongNumber(const LongNumber& other); 	// Copy constructor
 	LongNumber(long double number); // Construct from double
 	LongNumber(const string& str); 	// Construct from string
 
@@ -56,7 +57,7 @@ public:
 	LongNumber operator+ (const LongNumber& other); 
 	LongNumber operator- (const LongNumber& other);
 	LongNumber operator* (const LongNumber& other); // Karatsuba algorithm
-	LongNumber operator/ (LongNumber& other); // Newton-Raphson method
+	LongNumber operator/ (const LongNumber& other); // Newton-Raphson method
 
 	// Return a string form of long number
 	string ToString();
