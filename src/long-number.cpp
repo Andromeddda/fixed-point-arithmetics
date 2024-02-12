@@ -96,7 +96,19 @@ LongNumber::LongNumber(const string& str) {
 
 // Construct from double
 // Delegate to constructor from string litearal (cince C++11)
-LongNumber::LongNumber(long double number) : LongNumber(std::to_string(number)) {}
+LongNumber::LongNumber(const long double number) : LongNumber(std::to_string(number)) {}
+
+// Construct from vector<int> and sign
+LongNumber::LongNumber(const vector<int>& array, bool positive) {
+	sign = positive ? 1 : -1;
+	digits = vector<int>(array);
+
+	// Fill the zeros
+	if (array.size() < PRECISION) {
+		digits.insert(digits.begin(), PRECISION - digits.size(), 0);
+	}
+}
+
 
 /////////////////////
 // LOGIC OPERATORS //
@@ -325,7 +337,7 @@ LongNumber LongNumber::operator* (const LongNumber& other) {
 	// Fix precision
 	if (PRECISION >= 2*back_zeros) {
 		// Round
-if (result.digits[result.digits.size() - PRECISION + 2*back_zeros - 0] >= 5) {
+		if (result.digits[result.digits.size() - PRECISION + 2*back_zeros - 0] >= 5) {
 			result.digits[result.digits.size() - PRECISION + 2*back_zeros - 1] += 1;
 		}
 
@@ -344,53 +356,56 @@ if (result.digits[result.digits.size() - PRECISION + 2*back_zeros - 0] >= 5) {
 }
 
 LongNumber LongNumber::operator/ (const LongNumber& other) {
-	LongNumber D = LongNumber(other);
+	// LongNumber D = LongNumber(other);
 
-	VERIFY_CONTRACT(D != 0.0_ln, "ERROR: division by zero");
+	// VERIFY_CONTRACT(D != 0.0_ln, "ERROR: division by zero");
 
-	// if divisor is negative, inverse both numbers
-	if (D.sign == -1) {
-		return (-(*this))/((LongNumber)(-other));
-	}
+	// // if divisor is negative, inverse both numbers
+	// if (D.sign == -1) {
+	// 	return (-(*this))/((LongNumber)(-other));
+	// }
 
-	// Some trivial cases
-	if (D == 1.0_ln) return LongNumber(*this);
-	if (D == 2.0_ln) return (*this) * 0.5_ln;
-	if (D == 4.0_ln) return (*this) * 0.25_ln;
-	if (D == 8.0_ln) return (*this) * 0.125_ln;
-	if (D == 0.5_ln) return (*this) * 2.0_ln;
-	if (D == 10.0_ln) return (*this) * 0.1_ln;
-	if (D == 0.1_ln) return (*this) * 10.0_ln;
+	// // Some trivial cases
+	// if (D == 1.0_ln) return LongNumber(*this);
+	// if (D == 2.0_ln) return (*this) * 0.5_ln;
+	// if (D == 4.0_ln) return (*this) * 0.25_ln;
+	// if (D == 8.0_ln) return (*this) * 0.125_ln;
+	// if (D == 0.5_ln) return (*this) * 2.0_ln;
+	// if (D == 10.0_ln) return (*this) * 0.1_ln;
+	// if (D == 0.1_ln) return (*this) * 10.0_ln;
 
 
-	// Divisor is positive now
+	// // Divisor is positive now
 	
-	// Calculate first approximation
-	LongNumber X = 0.1_ln;
-	size_t size = other.digits.size();
-	if (size > PRECISION) {
-		// if other ~ 10^N, then X = 0.0...01 (N zeros total)
-		int N = size - PRECISION;
+	// // Calculate first approximation
+	// LongNumber X = 0.1_ln;
+	// size_t size = other.digits.size();
+	// if (size > PRECISION) {
+	// 	// if other ~ 10^N, then X = 0.0...01 (N zeros total)
+	// 	int N = size - PRECISION;
 
-		X.digits.erase(X.digits.end() - N + 1, X.digits.end());
-		X.digits.insert(X.digits.begin(), N - 1, 0);
+	// 	X.digits.erase(X.digits.end() - N + 1, X.digits.end());
+	// 	X.digits.insert(X.digits.begin(), N - 1, 0);
 
-	}
-	else {
-		// if other ~ 10^-N, then X = 10...0 (N zeros total)
-		int N = 0;
-		while (other.digits[N] == 0) N++;
-		X.digits.insert(X.digits.end(), N + 2, 0);
-	}
+	// }
+	// else {
+	// 	// if other ~ 10^-N, then X = 10...0 (N zeros total)
+	// 	int N = 0;
+	// 	while (other.digits[N] == 0) N++;
+	// 	X.digits.insert(X.digits.end(), N + 2, 0);
+	// }
 
-	// The actual newton raphson's
-	for (int i = 0; i < NEWTON_RAPHSON_ITERATIONS_DIV; i++) {
-		LongNumber E = 2.0_ln - X*other;
-		LongNumber Y = X*E;
-		X.digits = vector<int>(Y.digits);
-	}
+	// // The actual newton raphson's
+	// for (int i = 0; i < NEWTON_RAPHSON_ITERATIONS_DIV; i++) {
+	// 	LongNumber E = 2.0_ln - X*other;
+	// 	LongNumber Y = X*E;
+	// 	X.digits = vector<int>(Y.digits);
+	// }
 
-	return (*this) * X;
+	// return (*this) * X;
+
+	LongNumber result = GoldSchmidt(*this, other);
+	return result;
 }
 
 ////////////////////////////////
@@ -414,7 +429,7 @@ LongNumber operator""_ln(long double number) {
 // Return a string form of long number
 string LongNumber::ToString() {
 	if (!(*this)) return "0";
-
+	
 	string result = "";
 	int size = digits.size();
 
@@ -443,6 +458,13 @@ string LongNumber::ToString() {
 		result = "-" + result;
 	}
 
+	return result;
+}
+
+LongNumber LongNumber::abs() {
+	LongNumber result;
+	result.digits = vector<int>(digits);
+	result.sign = 1;
 	return result;
 }
 
@@ -604,3 +626,49 @@ vector<int> operator- (const vector<int>& x, const vector<int>& y) {
 	return result;
 }
 
+LongNumber GoldSchmidt(const LongNumber& a, const LongNumber& b) {
+	// Copy numbers
+	LongNumber A = LongNumber(a);
+	LongNumber B = LongNumber(b);
+	LongNumber D = LongNumber(b);
+
+	if (B.get_sign() == -1) {
+		return GoldSchmidt(-A, -B);
+	}
+
+	// Handle division by zero
+	VERIFY_CONTRACT(B != 0.0_ln, "ERROR: division by zero");
+
+	// Handle division by 1.0
+	if (B == 1.0_ln) return A;
+
+	// Calculate first approximation of F between 0.1 and 1
+	LongNumber F = 1.0_ln;
+	if (B.get_digits().size() == PRECISION) {
+		// If B < 0.1, find such F that 0.1 <= F*B < 1
+		// multiplying F by ten for every zero in the front of B
+		int i = 0;
+		while (B.get_digits()[i] == 0) {
+			F = F * 10.0_ln;
+			++i;
+		}
+	}
+	else {
+		// if B > 1, find such F that 0.1 < F*B < 1
+		// dividing F by ten for every digit in B
+		int i = B.get_digits().size();
+		while (i > PRECISION) {
+			F = F * 0.1_ln;
+			--i;
+		}
+	}
+
+	// This cycle only works when operator* rounds the result mathematically
+	while ( B != 1.0_ln) {
+		A = A * F;
+		B = B * F;
+		F = 2.0_ln - B;
+	}
+
+	return A;
+}

@@ -19,7 +19,7 @@ int main(void) {
 	run_test("double constructor",	test_double_constructor);
 	run_test("ud-suffix", 			test_ud_suffix_constructor);
 	run_test("ToString() method", 	test_ToString);
-	run_test("unary minus ",		test_unary_minus);
+	run_test("unary minus",		test_unary_minus);
 	run_test("addition", 			test_addition);
 	run_test("subtraction", 		test_subtraction);
 	run_test("multiplication", 		test_multiplication);

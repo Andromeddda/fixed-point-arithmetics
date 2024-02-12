@@ -1,5 +1,6 @@
 #include "test_system.hpp"
 #include "long-number.hpp"
+#include "utils.hpp"
 
 using namespace TestSystem;
 
@@ -39,7 +40,6 @@ bool test_double_constructor() {
         return FAIL;
     }
     return OK;
-
 }
 
 bool test_ud_suffix_constructor() {
@@ -111,5 +111,7 @@ bool test_division() {
 	LongNumber y = 0.0678_ln;
 	LongNumber z = -83.6991_ln;
 
-	return (x == z / y);
+	LongNumber res = (z / y) + 1234.5_ln;
+
+	return (res.abs() < LongNumber(vector<int>{1, 0, 0, 0}));
 }

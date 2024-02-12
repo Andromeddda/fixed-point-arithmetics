@@ -32,6 +32,11 @@ public:
 	LongNumber(long double number); // Construct from double
 	LongNumber(const string& str); 	// Construct from string
 
+	// Construct from vector<int> and sign
+	// 		NOTE: it may be used to create really small numbers
+	// 		such as 0.000...0001 (with maximum precision)
+	LongNumber(const vector<int>& digits, bool positive = true);
+
 	/////////////////////
 	// LOGIC OPERATORS //
 	/////////////////////
@@ -59,8 +64,15 @@ public:
 	LongNumber operator* (const LongNumber& other); // Karatsuba algorithm
 	LongNumber operator/ (const LongNumber& other); // Newton-Raphson method
 
+	//////////////////////
+	// USABLE FUNCTIONS //
+	//////////////////////
+
 	// Return a string form of long number
 	string ToString();
+
+	// Return absolute value
+	LongNumber abs();
 
 };
 
@@ -72,7 +84,7 @@ public:
 void vector_print(const vector<int>& vec);
 
 // User-defined floating-point literal
-LongNumber operator""_ln(long double number);
+LongNumber operator""_ln(const long double number);
 
 
 /////////////////////
@@ -90,3 +102,6 @@ vector<int> operator+ (const vector<int>& x, const vector<int>& y);
 
 // overload subtraction of vectors
 vector<int> operator- (const vector<int>& x, const vector<int>& y);
+
+
+LongNumber GoldSchmidt(const LongNumber& a, const LongNumber& b);
