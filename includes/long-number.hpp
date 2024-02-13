@@ -4,16 +4,21 @@ using namespace std;
 #include <vector>
 #include <string>
 
+#define ROUND
+// WARING: if the production of two numbers is not rounded
+// the Goldschmidt division algorithm would probably run forever.
+// if ROUND is not defined, you need to limit iterations
+
 #define PRECISION (1000)
 #define KARATSUBA_MIN_LEN (100)
-#define NEWTON_RAPHSON_ITERATIONS_DIV (15)
-#define NEWTON_RAPHSON_ITERATIONS_SQRT (3)
 
 // The number is represented as a big integer divided by 10^PRECISION 
 class LongNumber {
 	// This vector represents the big integer number
 	std::vector<int> digits;
 	int sign;
+
+	bool ok() const; // check if number is valid
 
 public:
 	/////////////
@@ -27,8 +32,16 @@ public:
 	// CONSTRUCTORS //
 	//////////////////
 
-	LongNumber(); 					// Construct 0.0
-	LongNumber(const LongNumber& other); 	// Copy constructor
+	// THE RULE OF FIVE
+	LongNumber(); 									// Construct 0.0
+
+	LongNumber(const LongNumber& other); 			// Copy constructor
+	LongNumber(LongNumber&& other);					// Move constructor
+
+	LongNumber& operator= (const LongNumber& other); // Copy assignment
+	LongNumber& operator= (LongNumber&& other);		// Move Assignment
+
+	// MOVE CONSTRUCTORS
 	LongNumber(long double number); // Construct from double
 	LongNumber(const string& str); 	// Construct from string
 
@@ -49,11 +62,6 @@ public:
 	bool operator<= (const LongNumber& other);
 	bool operator!= (const LongNumber& other);
 
-	///////////////////////////
-	// SIDE EFFECT OPERATORS //
-	///////////////////////////
-	LongNumber operator= (const LongNumber& other);
-
 	///////////////////////
 	// NUMERIC OPERATORS //
 	///////////////////////
@@ -62,7 +70,7 @@ public:
 	LongNumber operator+ (const LongNumber& other); 
 	LongNumber operator- (const LongNumber& other);
 	LongNumber operator* (const LongNumber& other); // Karatsuba algorithm
-	LongNumber operator/ (const LongNumber& other); // Newton-Raphson method
+	LongNumber operator/ (const LongNumber& other); // Goldschmidt method
 
 	//////////////////////
 	// USABLE FUNCTIONS //
@@ -73,7 +81,6 @@ public:
 
 	// Return absolute value
 	LongNumber abs();
-
 };
 
 ////////////////////////////////
@@ -102,6 +109,3 @@ vector<int> operator+ (const vector<int>& x, const vector<int>& y);
 
 // overload subtraction of vectors
 vector<int> operator- (const vector<int>& x, const vector<int>& y);
-
-
-LongNumber GoldSchmidt(const LongNumber& a, const LongNumber& b);

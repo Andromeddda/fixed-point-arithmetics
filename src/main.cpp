@@ -18,11 +18,17 @@ int main(void) {
 	run_test("string constructor",	test_string_constructor);
 	run_test("double constructor",	test_double_constructor);
 	run_test("ud-suffix", 			test_ud_suffix_constructor);
+
 	run_test("ToString() method", 	test_ToString);
-	run_test("unary minus",		test_unary_minus);
+
+	run_test("equality", 			test_equality);
+	run_test("comparison", 			test_comparison);
+
+	run_test("unary minus",			test_unary_minus);
 	run_test("addition", 			test_addition);
 	run_test("subtraction", 		test_subtraction);
 	run_test("multiplication", 		test_multiplication);
+	run_test("rounding the product", test_multiplication_round);
 	run_test("division", 			test_division);
 
 	return 0;

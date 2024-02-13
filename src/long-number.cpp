@@ -20,6 +20,22 @@ vector<int> LongNumber::get_digits() {
 	return vector<int>(digits);
 }
 
+// Check if number is valid
+bool LongNumber::ok() const {
+	// Check if sign is valid
+	if ((sign != 1) && (sign != -1)) return false;
+
+	// Check if digits not empty
+	if (digits.size() == 0) return false;
+
+	// Check if all digits are actually digits
+	for (size_t i = 0; i < digits.size(); ++i) {
+		if ((digits[i] > 9) && (digits[i] < 0)) return false;
+	}
+
+	return true;
+}
+
 //////////////////
 // CONSTRUCTORS //
 //////////////////
@@ -33,10 +49,62 @@ LongNumber::LongNumber() {
 
 // Copy constructor
 LongNumber::LongNumber(const LongNumber& other) {
+	VERIFY_CONTRACT(other.ok(), "ERROR: unable to counstruct LongNumber from invalid origin");
+
 	// Copy sign
 	sign = other.sign; 
 	// Copy digits
 	digits = vector<int>(other.digits);
+
+	VERIFY_CONTRACT(this->ok(), "ERROR: unable to counstruct LongNumber by copying");
+}
+
+// Move constructor
+LongNumber::LongNumber(LongNumber&& other) {
+	VERIFY_CONTRACT(other.ok(), "ERROR: unable to counstruct LongNumber from invalid origin");
+
+	// Copy sign
+	sign = other.sign; 
+	// Copy digits
+	digits = vector<int>(other.digits);
+
+	// delete origin
+	other.digits.clear();
+	other.digits.resize(0);
+
+	VERIFY_CONTRACT(this->ok(), "ERROR: unable to counstruct LongNumber by moving");
+	VERIFY_CONTRACT(!other.ok(), "ERROR: move counstructor is note destructive for origin");
+}
+
+// Copy assignment
+LongNumber& LongNumber::operator= (const LongNumber& other) {
+	VERIFY_CONTRACT(other.ok(), "ERROR: unable to assign LongNumber to invalid origin");
+
+	sign = other.sign;
+	digits = vector<int>(other.digits);
+	
+	VERIFY_CONTRACT(this->ok(), "ERROR: unable to assign LongNumber");
+
+	return *this;
+}
+
+// Move assignment
+LongNumber& LongNumber::operator= (LongNumber&& other) {
+	VERIFY_CONTRACT(other.ok(), "ERROR: unable to counstruct LongNumber from invalid origin");
+
+	// Copy sign
+	sign = other.sign; 
+	// Copy digits
+	digits = vector<int>(other.digits);
+
+	// delete origin
+	other.digits.clear();
+	other.digits.resize(0);
+
+	VERIFY_CONTRACT(this->ok(), "ERROR: unable to assign LongNumber by moving");
+	VERIFY_CONTRACT(!other.ok(), "ERROR: move assignment is note destructive for origin");
+
+	return *this;
 }
 
 // Construct from string
@@ -165,15 +233,6 @@ bool LongNumber::operator!= (const LongNumber& other) {
 	return !(*this == other);
 }
 
-///////////////////////////
-// SIDE EFFECT OPERATORS //
-///////////////////////////
-LongNumber LongNumber::operator= (const LongNumber& other) {
-	sign = other.sign;
-	digits = vector<int>(other.digits);
-	return LongNumber(other);
-}
-
 ///////////////////////
 // NUMERIC OPERATORS //
 ///////////////////////
@@ -222,7 +281,7 @@ LongNumber LongNumber::operator+ (const LongNumber& other) {
 
 	// Go from the back and add digits and overflows
 	int overflow = 0;
-	for (int i = (int)size; i >= 0; --i) {
+	for (int i = (int)size - 1; i >= 0; --i) {
 		int sum = d1[i] + d2[i] + overflow;
 		result.digits[i] = sum % 10;
 		overflow = sum / 10;
@@ -333,18 +392,25 @@ LongNumber LongNumber::operator* (const LongNumber& other) {
 	// then their production must have lenght PRECISION+a+b,
 	// but when we multiply two vectors, the output length is 2*PRECISION-2*N + a + b
 
+	bool round = false;
 
 	// Fix precision
 	if (PRECISION >= 2*back_zeros) {
-		// Round
-		if (result.digits[result.digits.size() - PRECISION + 2*back_zeros - 0] >= 5) {
-			result.digits[result.digits.size() - PRECISION + 2*back_zeros - 1] += 1;
+		// Round (or not) numbers after multiplying
+		#ifdef ROUND
+		if (result.digits[result.digits.size() - PRECISION + 2*back_zeros] >= 5) {
+			round = true;
 		}
+		#endif
 
 		result.digits.erase(result.digits.end() - PRECISION + 2*back_zeros, result.digits.end());
 	}
 	else if (PRECISION < 2*back_zeros) {
 		result.digits.insert(result.digits.end(), 2*back_zeros - PRECISION, 0);
+	}
+
+	if (round) {
+		result = result + LongNumber(vector<int>{1}, (sign == 1));
 	}
 	
 	//Remove zeros in the front
@@ -356,56 +422,78 @@ LongNumber LongNumber::operator* (const LongNumber& other) {
 }
 
 LongNumber LongNumber::operator/ (const LongNumber& other) {
-	// LongNumber D = LongNumber(other);
+	// Copy numbers
+	LongNumber A = LongNumber(*this);
+	LongNumber B = LongNumber(other);
 
-	// VERIFY_CONTRACT(D != 0.0_ln, "ERROR: division by zero");
+	// Copy them one more time to fix the result in the end
+	LongNumber N = LongNumber(*this);
+	LongNumber D = LongNumber(other);
 
-	// // if divisor is negative, inverse both numbers
-	// if (D.sign == -1) {
-	// 	return (-(*this))/((LongNumber)(-other));
-	// }
+	if (B.get_sign() == -1) {
+		return (-A) / (-B);
+	}
 
-	// // Some trivial cases
-	// if (D == 1.0_ln) return LongNumber(*this);
-	// if (D == 2.0_ln) return (*this) * 0.5_ln;
-	// if (D == 4.0_ln) return (*this) * 0.25_ln;
-	// if (D == 8.0_ln) return (*this) * 0.125_ln;
-	// if (D == 0.5_ln) return (*this) * 2.0_ln;
-	// if (D == 10.0_ln) return (*this) * 0.1_ln;
-	// if (D == 0.1_ln) return (*this) * 10.0_ln;
+	// Handle division by zero
+	VERIFY_CONTRACT(B != 0.0_ln, "ERROR: division by zero");
 
+	// Handle division by 1.0
+	if (B == 1.0_ln) return A;
 
-	// // Divisor is positive now
-	
-	// // Calculate first approximation
-	// LongNumber X = 0.1_ln;
-	// size_t size = other.digits.size();
-	// if (size > PRECISION) {
-	// 	// if other ~ 10^N, then X = 0.0...01 (N zeros total)
-	// 	int N = size - PRECISION;
+	// Calculate first approximation of F between 0.1 and 1
+	LongNumber F = 1.0_ln;
+	if (B.get_digits().size() == PRECISION) {
+		// If B < 0.1, find such F that 0.1 <= F*B < 1
+		// multiplying F by ten for every zero in the front of B
+		int i = 0;
+		while (B.get_digits()[i] == 0) {
+			F = F * 10.0_ln;
+			++i;
+		}
+	}
+	else {
+		// if B > 1, find such F that 0.1 < F*B < 1
+		// dividing F by ten for every digit in B
+		int i = B.get_digits().size();
+		while (i > PRECISION) {
+			F = F * 0.1_ln;
+			--i;
+		}
+	}
 
-	// 	X.digits.erase(X.digits.end() - N + 1, X.digits.end());
-	// 	X.digits.insert(X.digits.begin(), N - 1, 0);
+	LongNumber B_inverse = 1.0_ln;
 
-	// }
-	// else {
-	// 	// if other ~ 10^-N, then X = 10...0 (N zeros total)
-	// 	int N = 0;
-	// 	while (other.digits[N] == 0) N++;
-	// 	X.digits.insert(X.digits.end(), N + 2, 0);
-	// }
+	/* Explanation of Goldschmidt:
+		both A and B are multiplied by some sequence of numbers F(i)
+		until B(i) == 1.0.
+		Therefore A(i) == A(0) / B(0)
+	*/
+	while ( B != 1.0_ln) {
+		A = A * F;
+		B = B * F;
+		B_inverse = B_inverse * F;
+		F = 2.0_ln - B;
+	}
 
-	// // The actual newton raphson's
-	// for (int i = 0; i < NEWTON_RAPHSON_ITERATIONS_DIV; i++) {
-	// 	LongNumber E = 2.0_ln - X*other;
-	// 	LongNumber Y = X*E;
-	// 	X.digits = vector<int>(Y.digits);
-	// }
+	/* Explanation of correction:
+		Due to rounding of numbers, B can become 1.0 earlier, than A become the precise result.
+		Therefore, there is a difference between A*D and N
 
-	// return (*this) * X;
+		Let BI = 1/D,
+			N/D ~ A
 
-	LongNumber result = GoldSchmidt(*this, other);
-	return result;
+		d = N - D*A
+		d*BI = N*BI - BI*D*A
+		d*BI = N/D - A
+		N/D = A + d*BI 
+
+	*/
+
+	LongNumber d = N + D*(-A);
+	LongNumber fix = d*B_inverse;
+	LongNumber res = fix + A;
+
+	return res;
 }
 
 ////////////////////////////////
@@ -494,7 +582,7 @@ vector<int> Karatsuba(vector<int>& X, vector<int>& Y) {
 	vector<int> Yl {y.begin(), mid_y};
 	vector<int> Yr {mid_y, y.end()};
 
-	// EXPLANATION OF KARARSUBA
+	// EXPLANATION OF KARATSUBA
 	// if 	x = Xl*q + Xr,
 	//	 	y = Yl*q + Yr, 
 	// where 
@@ -572,7 +660,9 @@ vector<int> operator+ (const vector<int>& x, const vector<int>& y) {
     int overflow = 0, sum = 0;
     for (int i = size - 1; i >= 0; i--) {
     	sum = d1[i] + d2[i] + overflow;
-    	result[i+1] = sum % 10;
+
+    	// Add with shift to i+1 because of extra digit, insertet in the front
+    	result[i+1] = sum % 10; 
     	overflow = sum / 10;
     }
 
@@ -624,51 +714,4 @@ vector<int> operator- (const vector<int>& x, const vector<int>& y) {
     }
 
 	return result;
-}
-
-LongNumber GoldSchmidt(const LongNumber& a, const LongNumber& b) {
-	// Copy numbers
-	LongNumber A = LongNumber(a);
-	LongNumber B = LongNumber(b);
-	LongNumber D = LongNumber(b);
-
-	if (B.get_sign() == -1) {
-		return GoldSchmidt(-A, -B);
-	}
-
-	// Handle division by zero
-	VERIFY_CONTRACT(B != 0.0_ln, "ERROR: division by zero");
-
-	// Handle division by 1.0
-	if (B == 1.0_ln) return A;
-
-	// Calculate first approximation of F between 0.1 and 1
-	LongNumber F = 1.0_ln;
-	if (B.get_digits().size() == PRECISION) {
-		// If B < 0.1, find such F that 0.1 <= F*B < 1
-		// multiplying F by ten for every zero in the front of B
-		int i = 0;
-		while (B.get_digits()[i] == 0) {
-			F = F * 10.0_ln;
-			++i;
-		}
-	}
-	else {
-		// if B > 1, find such F that 0.1 < F*B < 1
-		// dividing F by ten for every digit in B
-		int i = B.get_digits().size();
-		while (i > PRECISION) {
-			F = F * 0.1_ln;
-			--i;
-		}
-	}
-
-	// This cycle only works when operator* rounds the result mathematically
-	while ( B != 1.0_ln) {
-		A = A * F;
-		B = B * F;
-		F = 2.0_ln - B;
-	}
-
-	return A;
 }
