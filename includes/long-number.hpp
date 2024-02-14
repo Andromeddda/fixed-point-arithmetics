@@ -55,32 +55,34 @@ public:
 	/////////////////////
 
 	operator bool() const; // Return false if number == 0 or empty, return true otherwise
-	bool operator== (const LongNumber& other);
-	bool operator> (const LongNumber& other);
-	bool operator>= (const LongNumber& other);
-	bool operator< (const LongNumber& other);
-	bool operator<= (const LongNumber& other);
-	bool operator!= (const LongNumber& other);
+	bool operator== (const LongNumber& other) const;
+	bool operator> (const LongNumber& other) const;
+	bool operator>= (const LongNumber& other) const;
+	bool operator< (const LongNumber& other) const;
+	bool operator<= (const LongNumber& other) const;
+	bool operator!= (const LongNumber& other) const;
 
 	///////////////////////
 	// NUMERIC OPERATORS //
 	///////////////////////
 
-	LongNumber operator- (); 						// Unary minus
-	LongNumber operator+ (const LongNumber& other); 
-	LongNumber operator- (const LongNumber& other);
-	LongNumber operator* (const LongNumber& other); // Karatsuba algorithm
-	LongNumber operator/ (const LongNumber& other); // Goldschmidt method
+	LongNumber operator- () const; 						// Unary minus
+	LongNumber operator+ (const LongNumber& other) const; 
+	LongNumber operator- (const LongNumber& other) const;
+	LongNumber operator* (const LongNumber& other) const; // Karatsuba algorithm
+	LongNumber operator/ (const LongNumber& other) const; // Goldschmidt method
 
 	//////////////////////
 	// USABLE FUNCTIONS //
 	//////////////////////
 
 	// Return a string form of long number
-	string ToString();
+	string ToString() const;
+
+	LongNumber sqrt() const;
 
 	// Return absolute value
-	LongNumber abs();
+	LongNumber abs() const;
 };
 
 ////////////////////////////////
@@ -109,3 +111,4 @@ vector<int> operator+ (const vector<int>& x, const vector<int>& y);
 
 // overload subtraction of vectors
 vector<int> operator- (const vector<int>& x, const vector<int>& y);
+

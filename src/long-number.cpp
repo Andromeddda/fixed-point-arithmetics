@@ -191,11 +191,11 @@ LongNumber::operator bool() const {
 	return !((digits.size() == 1) && (digits[0] == 0));
 }
 
-bool LongNumber::operator== (const LongNumber& other) {
+bool LongNumber::operator== (const LongNumber& other) const {
 	return (sign == other.sign) && (digits == other.digits);
 }
 
-bool LongNumber::operator> (const LongNumber& other) {
+bool LongNumber::operator> (const LongNumber& other) const {
 	// If signs are different, compare signs and return
 	if (sign != other.sign) {
 		return (sign > other.sign);
@@ -217,19 +217,19 @@ bool LongNumber::operator> (const LongNumber& other) {
 	return false;
 }
 
-bool LongNumber::operator>= (const LongNumber& other) {
+bool LongNumber::operator>= (const LongNumber& other) const {
 	return (*this > other) || (*this == other);
 }
 
-bool LongNumber::operator< (const LongNumber& other) {
+bool LongNumber::operator< (const LongNumber& other) const {
 	return !(*this >= other);
 }
 
-bool LongNumber::operator<= (const LongNumber& other) {
+bool LongNumber::operator<= (const LongNumber& other) const {
 	return !(*this > other);
 }
 
-bool LongNumber::operator!= (const LongNumber& other) {
+bool LongNumber::operator!= (const LongNumber& other) const {
 	return !(*this == other);
 }
 
@@ -237,7 +237,7 @@ bool LongNumber::operator!= (const LongNumber& other) {
 // NUMERIC OPERATORS //
 ///////////////////////
 
-LongNumber LongNumber::operator- () {
+LongNumber LongNumber::operator- () const {
 	if (!(*this)) {
 		return LongNumber();
 	}
@@ -248,7 +248,7 @@ LongNumber LongNumber::operator- () {
 	return result;
 }
 
-LongNumber LongNumber::operator+ (const LongNumber& other) {
+LongNumber LongNumber::operator+ (const LongNumber& other) const {
 	// If signs are different call operator-
 	if (sign != other.sign) {
 		if (sign == -1) {
@@ -295,10 +295,12 @@ LongNumber LongNumber::operator+ (const LongNumber& other) {
 	return result;
 }
 
-LongNumber LongNumber::operator- (const LongNumber& other) {
+LongNumber LongNumber::operator- (const LongNumber& other) const {
 	// If numbers are equal, return zero from constructor
 	// so that it has positive sign
-	if (*this == other) return LongNumber();
+	if ((*this) == other) {
+		return LongNumber();
+	}
 
 	// If signs are different call operator+
 	if (sign != other.sign) {
@@ -310,14 +312,8 @@ LongNumber LongNumber::operator- (const LongNumber& other) {
 		}
 	}
 
-	// If both signs are negative, call operator- in different order
-	if (sign == -1) {
-		return (-other) - (-(*this));
-	}
-
-	// If both signs are positive
-	// Compare numbers
-	bool compare = ((*this) > other);
+	// Signs are equal
+	bool compare = ((*this) > other) ^ (sign == -1);
 
 	// Copy the biggest number
 	vector<int> d1 = vector<int>(compare ? digits : other.digits);
@@ -361,7 +357,7 @@ LongNumber LongNumber::operator- (const LongNumber& other) {
     return result;
 }
 
-LongNumber LongNumber::operator* (const LongNumber& other) {
+LongNumber LongNumber::operator* (const LongNumber& other) const {
 	// Create new LongNumber
 	LongNumber result;
 
@@ -421,7 +417,7 @@ LongNumber LongNumber::operator* (const LongNumber& other) {
 	return result;
 }
 
-LongNumber LongNumber::operator/ (const LongNumber& other) {
+LongNumber LongNumber::operator/ (const LongNumber& other) const {
 	// Copy numbers
 	LongNumber A = LongNumber(*this);
 	LongNumber B = LongNumber(other);
@@ -515,7 +511,7 @@ LongNumber operator""_ln(long double number) {
 }
 
 // Return a string form of long number
-string LongNumber::ToString() {
+string LongNumber::ToString() const {
 	if (!(*this)) return "0";
 	
 	string result = "";
@@ -549,7 +545,7 @@ string LongNumber::ToString() {
 	return result;
 }
 
-LongNumber LongNumber::abs() {
+LongNumber LongNumber::abs() const {
 	LongNumber result;
 	result.digits = vector<int>(digits);
 	result.sign = 1;

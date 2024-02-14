@@ -26,7 +26,9 @@ int main(void) {
 
 	run_test("unary minus",			test_unary_minus);
 	run_test("addition", 			test_addition);
+
 	run_test("subtraction", 		test_subtraction);
+	
 	run_test("multiplication", 		test_multiplication);
 	run_test("rounding the product", test_multiplication_round);
 	run_test("division", 			test_division);

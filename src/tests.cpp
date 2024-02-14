@@ -113,7 +113,9 @@ bool test_subtraction() {
 	LongNumber y = 0.00002_ln;
 	LongNumber z = 1000.000019_ln;
 
-	return (y == z - x);
+	LongNumber t = z - x;
+
+	return (y == t);
 }
 
 bool test_multiplication() {
