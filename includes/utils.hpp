@@ -1,5 +1,3 @@
-using namespace std;
-
 #include <iostream>
 #include <ctime>
 
@@ -37,11 +35,11 @@ using namespace std;
 
 #define DEBUG_B \
 	std::cout << SET_COLOR_CYAN << "[===DEBUG===]: [" << __FUNCTION__ << \
-	"] on line " << __LINE__ << RESET_COLOR << endl; 
+	"] on line " << __LINE__ << RESET_COLOR << std::endl; 
 
 #define DEBUG_M(message) \
 	std::cout << SET_COLOR_CYAN << "[===DEBUG===]: [" << __FUNCTION__ << \
-	"] on line " << __LINE__ << " | " << message << RESET_COLOR << endl;
+	"] on line " << __LINE__ << " | " << message << RESET_COLOR << std::endl;
 
 #define DEBUG_EXEC(func, ...) 																					\
 	std::cout << SET_COLOR_CYAN << "[===DEBUG===]: [" << __FUNCTION__ << "] on line " << __LINE__ << " | "; 	\
@@ -57,7 +55,7 @@ using namespace std;
 	clock_t start = clock(); 																\
 	func(__VA_ARGS__); 																		\
 	clock_t end = clock();																	\
-	std::cout << msg << (double)(end - start) * 1000.0 / CLOCKS_PER_SEC << "ms" << endl;	\
+	std::cout << msg << (double)(end - start) * 1000.0 / CLOCKS_PER_SEC << "ms" << std::endl;	\
 	}
 
 #define EXEC_TIMING(msg, code) \
@@ -65,5 +63,5 @@ using namespace std;
 	clock_t start = clock(); 																\
 	code; 																					\
 	clock_t end = clock();																	\
-	std::cout << msg << " " <<(double)(end - start) / CLOCKS_PER_SEC << "s" << endl;	\
+	std::cout << msg << " " <<(double)(end - start) / CLOCKS_PER_SEC << "s" << std::endl;	\
 	}

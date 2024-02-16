@@ -12,16 +12,16 @@ using namespace std;
 ///////////////////////////////////
 
 // Recursive multiplication of two vectors
-vector<int> Karatsuba(vector<int>& left, vector<int>& right);
+vector<digit_t> Karatsuba(vector<digit_t>& left, vector<digit_t>& right);
 
-// Multiply two vector<int> with complixity O(n^2)
-vector<int> naive_multiplication(vector<int>& left, vector<int>& right);
+// Multiply two vector<digit_t> with complixity O(n^2)
+vector<digit_t> naive_multiplication(vector<digit_t>& left, vector<digit_t>& right);
 
 // overload addition of vectors
-vector<int> add_vectors (const vector<int>& x, const vector<int>& y);
+vector<digit_t> add_vectors (const vector<digit_t>& x, const vector<digit_t>& y);
 
 // overload subtraction of vectors
-vector<int> subtract_vectors (const vector<int>& x, const vector<int>& y);
+vector<digit_t> subtract_vectors (const vector<digit_t>& x, const vector<digit_t>& y);
 
 /////////////////
 // OK FUNCTION //
@@ -51,7 +51,7 @@ bool LongNumber::ok() const {
 LongNumber::LongNumber() {
 	sign = 1;
 	// Create an empty vector
-	digits = std::vector<int>(1, 0);
+	digits = std::vector<digit_t>(1, 0);
 }
 
 // Copy constructor
@@ -61,7 +61,7 @@ LongNumber::LongNumber(const LongNumber& other) {
 	// Copy sign
 	sign = other.sign; 
 	// Copy digits
-	digits = vector<int>(other.digits);
+	digits = vector<digit_t>(other.digits);
 
 	VERIFY_CONTRACT(this->ok(), "ERROR: unable to counstruct LongNumber by copying");
 }
@@ -73,7 +73,7 @@ LongNumber::LongNumber(LongNumber&& other) {
 	// Copy sign
 	sign = other.sign; 
 	// Copy digits
-	digits = vector<int>(other.digits);
+	digits = vector<digit_t>(other.digits);
 
 	// delete origin
 	other.digits.clear();
@@ -88,7 +88,7 @@ LongNumber& LongNumber::operator= (const LongNumber& other) {
 	VERIFY_CONTRACT(other.ok(), "ERROR: unable to assign LongNumber to invalid origin");
 
 	sign = other.sign;
-	digits = vector<int>(other.digits);
+	digits = vector<digit_t>(other.digits);
 	
 	VERIFY_CONTRACT(this->ok(), "ERROR: unable to assign LongNumber");
 
@@ -102,7 +102,7 @@ LongNumber& LongNumber::operator= (LongNumber&& other) {
 	// Copy sign
 	sign = other.sign; 
 	// Copy digits
-	digits = vector<int>(other.digits);
+	digits = vector<digit_t>(other.digits);
 
 	// delete origin
 	other.digits.clear();
@@ -173,10 +173,10 @@ LongNumber::LongNumber(const string& str) {
 // Delegate to constructor from string litearal (cince C++11)
 LongNumber::LongNumber(const long double number) : LongNumber(std::to_string(number)) {}
 
-// Construct from vector<int> and sign
-LongNumber::LongNumber(const vector<int>& array, bool positive) {
+// Construct from vector<digit_t> and sign
+LongNumber::LongNumber(const vector<digit_t>& array, bool positive) {
 	sign = positive ? 1 : -1;
-	digits = vector<int>(array);
+	digits = vector<digit_t>(array);
 
 	// Fill the zeros
 	if (array.size() < PRECISION) {
@@ -251,7 +251,7 @@ LongNumber LongNumber::operator- () const {
 
 	LongNumber result;
 	result.sign = -sign;
-	result.digits = vector<int>(digits);
+	result.digits = vector<digit_t>(digits);
 	return result;
 }
 
@@ -268,8 +268,8 @@ LongNumber LongNumber::operator+ (const LongNumber& other) const {
 
 	// Signs are equal
 	// Copy digits
-	vector<int> d1 = vector<int>(digits);
-	vector<int> d2 = vector<int>(other.digits);
+	vector<digit_t> d1 = vector<digit_t>(digits);
+	vector<digit_t> d2 = vector<digit_t>(other.digits);
 
 	size_t size = MAX(d1.size(), d2.size());
 
@@ -283,13 +283,13 @@ LongNumber LongNumber::operator+ (const LongNumber& other) const {
 
 	// Create new LongNumber
 	LongNumber result;
-	result.digits = vector<int>(size, 0);
+	result.digits = vector<digit_t>(size, 0);
 	result.sign = sign;
 
 	// Go from the back and add digits and overflows
-	int overflow = 0;
+	digit_t overflow = 0;
 	for (int i = (int)size - 1; i >= 0; --i) {
-		int sum = d1[i] + d2[i] + overflow;
+		digit_t sum = d1[i] + d2[i] + overflow;
 		result.digits[i] = sum % 10;
 		overflow = sum / 10;
 	}
@@ -323,10 +323,10 @@ LongNumber LongNumber::operator- (const LongNumber& other) const {
 	bool compare = ((*this) > other) ^ (sign == -1);
 
 	// Copy the biggest number
-	vector<int> d1 = vector<int>(compare ? digits : other.digits);
+	vector<digit_t> d1 = vector<digit_t>(compare ? digits : other.digits);
 
 	// Copy the smallest number
-	vector<int> d2 = vector<int>(compare ? other.digits : digits);
+	vector<digit_t> d2 = vector<digit_t>(compare ? other.digits : digits);
 
 	// Find new size to insert zeros in the front
     size_t size = MAX(d1.size(), d2.size());
@@ -340,10 +340,10 @@ LongNumber LongNumber::operator- (const LongNumber& other) const {
     // Create new number
     LongNumber result;
     result.sign = compare ? 1 : -1;
-    result.digits = vector<int>(size, 0);
+    result.digits = vector<digit_t>(size, 0);
 
     // Run and subtract
-    int loan = 0; 
+    digit_t loan = 0; 
     for (int i = size - 1; i >= 0; i--) {
     	if (d1[i] - loan < d2[i]) {
     		// Need to take extra 10 from next digit
@@ -372,8 +372,8 @@ LongNumber LongNumber::operator* (const LongNumber& other) const {
 	result.sign = sign * other.sign;
 	
 	// Copy digits to successfully put it in Karatsuba function
-	vector<int> d1 = vector<int>(digits);
-	vector<int> d2 = vector<int>(other.digits);
+	vector<digit_t> d1 = vector<digit_t>(digits);
+	vector<digit_t> d2 = vector<digit_t>(other.digits);
 
 	// Remove zeros in the back to avoid multiplying zeros in Karatsuba()
 	int back_zeros = 0;
@@ -399,12 +399,10 @@ LongNumber LongNumber::operator* (const LongNumber& other) const {
 
 	// Fix precision
 	if (PRECISION >= 2*back_zeros) {
-		// Round (or not) numbers after multiplying
-		#ifdef ROUND
+		// Round numbers after multiplying
 		if (result.digits[result.digits.size() - PRECISION + 2*back_zeros] >= 5) {
 			round = true;
 		}
-		#endif
 
 		result.digits.erase(result.digits.end() - PRECISION + 2*back_zeros, result.digits.end());
 	}
@@ -413,7 +411,7 @@ LongNumber LongNumber::operator* (const LongNumber& other) const {
 	}
 
 	if (round) {
-		result = result + LongNumber(vector<int>{1}, (sign == 1));
+		result = result + LongNumber(vector<digit_t>{1}, (sign == 1));
 	}
 	
 	//Remove zeros in the front
@@ -421,10 +419,13 @@ LongNumber LongNumber::operator* (const LongNumber& other) const {
 		result.digits.erase(result.digits.begin());
 	}
 
+	VERIFY_CONTRACT(result.ok(), "ERROR: cannot multiply numbers")
+
 	return result;
 }
 
 LongNumber LongNumber::operator/ (const LongNumber& other) const {
+
 	// Copy numbers
 	LongNumber A = LongNumber(*this);
 	LongNumber B = LongNumber(other);
@@ -545,11 +546,10 @@ string LongNumber::ToString() const {
 
 LongNumber LongNumber::abs() const {
 	LongNumber result;
-	result.digits = vector<int>(digits);
+	result.digits = vector<digit_t>(digits);
 	result.sign = 1;
 	return result;
 }
-
 
 /* Input:
 		iterations (default = 20) - number of loops in Newton-Raphson method
@@ -559,7 +559,6 @@ LongNumber LongNumber::sqrt(unsigned int iterations, const LongNumber& initial) 
 	VERIFY_CONTRACT(this->ok(), "ERROR: cannot take square root of invalid number");
 
 	VERIFY_CONTRACT(sign == 1, "ERROR: cannot take square roor of negative number");
-
 	// Cpecial cases
 	if (*this == 0.0_ln) return LongNumber();
 	if (*this == 1.0_ln) return LongNumber(1.0);
@@ -608,9 +607,9 @@ LongNumber LongNumber::sqrt(unsigned int iterations, const LongNumber& initial) 
 /////////////////////
 
 // Recursive multiplication of two vectors
-vector<int> Karatsuba(vector<int>& X, vector<int>& Y) {
-	vector<int> x = vector<int>(X);
-	vector<int> y = vector<int>(Y);
+vector<digit_t> Karatsuba(vector<digit_t>& X, vector<digit_t>& Y) {
+	vector<digit_t> x = vector<digit_t>(X);
+	vector<digit_t> y = vector<digit_t>(Y);
 
 	size_t size = MAX(x.size(), y.size());
 
@@ -624,10 +623,10 @@ vector<int> Karatsuba(vector<int>& X, vector<int>& Y) {
 	auto mid_x = (x.size() > k) ? (x.end() - k) : x.begin();
 	auto mid_y = (y.size() > k) ? (y.end() - k) : y.begin();
 
-	vector<int> Xl {x.begin(), mid_x};
-	vector<int> Xr {mid_x, x.end()};
-	vector<int> Yl {y.begin(), mid_y};
-	vector<int> Yr {mid_y, y.end()};
+	vector<digit_t> Xl {x.begin(), mid_x};
+	vector<digit_t> Xr {mid_x, x.end()};
+	vector<digit_t> Yl {y.begin(), mid_y};
+	vector<digit_t> Yr {mid_y, y.end()};
 
 	// EXPLANATION OF KARATSUBA
 	// if 	x = Xl*q + Xr,
@@ -642,33 +641,33 @@ vector<int> Karatsuba(vector<int>& X, vector<int>& Y) {
 	// 		P2 = Xr*Yr
 	//		P3 = (Xl + Xr)*(Yl + Yr) - P1 - P2
 
-	vector<int> P1 = Karatsuba(Xl, Yl);
-	vector<int> P2 = Karatsuba(Xr, Yr);
+	vector<digit_t> P1 = Karatsuba(Xl, Yl);
+	vector<digit_t> P2 = Karatsuba(Xr, Yr);
 
-	vector<int> Xlr = add_vectors(Xl, Xr);
-	vector<int> Ylr = add_vectors(Yl, Yr);
+	vector<digit_t> Xlr = add_vectors(Xl, Xr);
+	vector<digit_t> Ylr = add_vectors(Yl, Yr);
 
 	// Calculate P3
-	vector<int> P3 = subtract_vectors(subtract_vectors(Karatsuba(Xlr, Ylr), P1), P2);
+	vector<digit_t> P3 = subtract_vectors(subtract_vectors(Karatsuba(Xlr, Ylr), P1), P2);
 
 	// P1 = P1*qq
 	// P3 = P3*q
 	P1.insert(P1.end(), 2*k, 0);
 	P3.insert(P3.end(), k, 0);
 
-	vector<int> result = add_vectors(add_vectors(P1, P3), P2);
+	vector<digit_t> result = add_vectors(add_vectors(P1, P3), P2);
 
 	return result;
 }
 
-// Multiply two vector<int> with complixity O(n^2)
-vector<int> naive_multiplication(vector<int>& left, vector<int>& right) {
+// Multiply two vector<digit_t> with complixity O(n^2)
+vector<digit_t> naive_multiplication(vector<digit_t>& left, vector<digit_t>& right) {
 
-	if (MIN(left.size(), right.size()) == 0) return vector<int>(1, 0);
+	if (MIN(left.size(), right.size()) == 0) return vector<digit_t>(1, 0);
 
-	// Create new vector<int>
+	// Create new vector<digit_t>
 	size_t size = left.size() + right.size();
-	vector<int> result = vector<int>(size, 0);
+	vector<digit_t> result = vector<digit_t>(size, 0);
 
 	// Run through and add
 	for (int i = left.size() - 1; i >= 0; --i) {
@@ -687,10 +686,10 @@ vector<int> naive_multiplication(vector<int>& left, vector<int>& right) {
 }
 
 // Overload addition of vectors
-vector<int> add_vectors (const vector<int>& x, const vector<int>& y) {
+vector<digit_t> add_vectors (const vector<digit_t>& x, const vector<digit_t>& y) {
 	// Copy
-	vector<int> d1 = vector<int>(x);
-	vector<int> d2 = vector<int>(y);
+	vector<digit_t> d1 = vector<digit_t>(x);
+	vector<digit_t> d2 = vector<digit_t>(y);
 
 	size_t size = MAX(d1.size(), d2.size());
 
@@ -701,10 +700,10 @@ vector<int> add_vectors (const vector<int>& x, const vector<int>& y) {
     	d2.insert(d2.begin(), size - d2.size(), 0);
 
     // Create new vector
-    vector<int> result = vector<int>(1 + size, 0);
+    vector<digit_t> result = vector<digit_t>(1 + size, 0);
 
     // Go from the back and add
-    int overflow = 0, sum = 0;
+    digit_t overflow = 0, sum = 0;
     for (int i = size - 1; i >= 0; i--) {
     	sum = d1[i] + d2[i] + overflow;
 
@@ -725,10 +724,10 @@ vector<int> add_vectors (const vector<int>& x, const vector<int>& y) {
 }
 
 // Overload subtraction of vectors
-vector<int> subtract_vectors (const vector<int>& x, const vector<int>& y) {
+vector<digit_t> subtract_vectors (const vector<digit_t>& x, const vector<digit_t>& y) {
 	// Copy
-	vector<int> d1 = vector<int>(x);
-	vector<int> d2 = vector<int>(y);
+	vector<digit_t> d1 = vector<digit_t>(x);
+	vector<digit_t> d2 = vector<digit_t>(y);
 
 	size_t size = MAX(d1.size(), d2.size());
 
@@ -739,10 +738,10 @@ vector<int> subtract_vectors (const vector<int>& x, const vector<int>& y) {
     	d2.insert(d2.begin(), size - d2.size(), 0);
 
     // Create new vector
-    vector<int> result = vector<int>(size, 0);
+    vector<digit_t> result = vector<digit_t>(size, 0);
 
     // Run and subtract
-    int loan = 0; 
+    digit_t loan = 0; 
     for (int i = size - 1; i >= 0; i--) {
     	if (d1[i] - loan < d2[i]) {
     		// Need to take extra 10 from next digit

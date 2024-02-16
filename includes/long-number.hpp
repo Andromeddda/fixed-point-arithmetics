@@ -1,21 +1,17 @@
-using namespace std;
+// WARNING: does not work with char (neither sign or unsigned)
+typedef short digit_t;
 
 #include <iostream>
 #include <vector>
 #include <string>
-
-#define ROUND
-// WARING: if the production of two numbers is not rounded
-// the Goldschmidt division algorithm would probably run forever.
-// if ROUND is not defined, you need to limit iterations
 
 #define PRECISION (1000)
 #define KARATSUBA_MIN_LEN (100)
 
 // The number is represented as a big integer divided by 10^PRECISION 
 class LongNumber {
-	// This vector represents the big integer number
-	std::vector<int> digits;
+	// This std::vector represents the big integer number
+	std::vector<digit_t> digits;
 	int sign;
 
 	bool ok() const; // check if number is valid
@@ -36,12 +32,12 @@ public:
 
 	// MOVE CONSTRUCTORS
 	LongNumber(long double number); // Construct from double
-	LongNumber(const string& str); 	// Construct from string
+	LongNumber(const std::string& str); 	// Construct from std::string
 
-	// Construct from vector<int> and sign
+	// Construct from std::vector<int> and sign
 	// 		NOTE: it may be used to create really small numbers
 	// 		such as 0.000...0001 (with maximum precision)
-	LongNumber(const vector<int>& digits, bool positive = true);
+	LongNumber(const std::vector<digit_t>& digits, bool positive = true);
 
 	/////////////////////
 	// LOGIC OPERATORS //
@@ -69,10 +65,10 @@ public:
 	// USABLE FUNCTIONS //
 	//////////////////////
 
-	// Return a string form of long number
-	string ToString() const;
+	// Return a std::string form of long number
+	std::string ToString() const;
 
-	LongNumber sqrt(unsigned int iterations = 13, const LongNumber& initial = LongNumber(0.1)) const;
+	LongNumber sqrt(unsigned int iterations = 16, const LongNumber& initial = LongNumber(0.1)) const;
 
 	// Return absolute value
 	LongNumber abs() const;

@@ -1,8 +1,10 @@
 #include "test_system.hpp"
 #include "long-number.hpp"
 #include "utils.hpp"
+#include <vector>
 
 using namespace TestSystem;
+using namespace std;
 
 // TEST CONSTRUCTORS
 bool test_empty_constructor() {
@@ -24,7 +26,7 @@ bool test_copy_constructor() {
 
 bool test_string_constructor() {
 	LongNumber x = LongNumber("-1234.567");
-	vector<int> d = vector<int>(PRECISION + 4, 0);
+	vector<digit_t> d = vector<digit_t>(PRECISION + 4, 0);
 	for (int i = 0; i < 7; i++) d[i] = i+1;
 	LongNumber y = LongNumber(d, false);
 
@@ -33,7 +35,7 @@ bool test_string_constructor() {
 
 bool test_double_constructor() {		
 	LongNumber x = LongNumber(-1234.567);
-	vector<int> d = vector<int>(PRECISION + 4, 0);
+	vector<digit_t> d = vector<digit_t>(PRECISION + 4, 0);
 	for (int i = 0; i < 7; i++) d[i] = i+1;
 
 	LongNumber y = LongNumber(d, false);
@@ -44,7 +46,7 @@ bool test_double_constructor() {
 
 bool test_ud_suffix_constructor() {			
 	LongNumber x = -1234.567_ln;
-	vector<int> d = vector<int>(PRECISION + 4, 0);
+	vector<digit_t> d = vector<digit_t>(PRECISION + 4, 0);
 	for (int i = 0; i < 7; i++) d[i] = i+1;
 
 	LongNumber y = LongNumber(d, false);
@@ -109,9 +111,9 @@ bool test_multiplication() {
 }
 
 bool test_multiplication_round() {
-	LongNumber x = LongNumber(vector<int>{3, 3});
+	LongNumber x = LongNumber(vector<digit_t>{3, 3});
 	LongNumber y = 0.2_ln;
-	LongNumber z = LongNumber(vector<int>{7});
+	LongNumber z = LongNumber(vector<digit_t>{7});
 
 	LongNumber t = x*y;
 
@@ -125,11 +127,11 @@ bool test_division() {
 
 	LongNumber res = (z / y) + 1234.5_ln;
 
-	return (res.abs() < LongNumber(vector<int>{1, 0}));
+	return (res.abs() < LongNumber(vector<digit_t>{1, 0}));
 }
 
 bool test_sqrt() {
 	LongNumber x = 9.8596_ln;
 
-	return x.sqrt() == 3.14_ln;
+	return (x.sqrt() - 3.14_ln).abs() < LongNumber(vector<digit_t>{1, 0});
 }

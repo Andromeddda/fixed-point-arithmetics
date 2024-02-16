@@ -1,10 +1,11 @@
 CC = g++
 
-CFLAGS = 					\
-	-Wall 					\
-	-Werror 				\
-	-Wextra 				\
-	-std=c++17				\
+CFLAGS = \
+	-Wall \
+	-Werror \
+	-Wextra \
+	-std=c++17 \
+	-O3 
 
 
 #--------
@@ -27,32 +28,28 @@ INCLUDES = \
 	includes/long-number.hpp 	\
 	includes/utils.hpp			\
 	includes/test_system.hpp	\
-	includes/tests.hpp			
+	includes/tests.hpp	
+
 
 # Add "include" folder to header search path:
 CFLAGS += -I $(abspath includes)
 
 # List of sources:
-SOURCES = \
-	main.cpp 		\
-	long-number.cpp	\
-	test_system.cpp \
-	tests.cpp
+SOURCES = $(notdir $(wildcard src/*.cpp))
 
 OBJECTS = $(SOURCES:%.cpp=build/%.o)
 
 EXECUTABLE = build/main
-
 
 #---------------
 # Build process
 #---------------
 
 # By default, build executable:
-default: $(EXECUTABLE) Makefile
+default: $(EXECUTABLE)
 
 # Link all object files together to obtain a binary:
-$(EXECUTABLE): $(OBJECTS) Makefile
+$(EXECUTABLE): $(OBJECTS)
 	@printf "$(BYELLOW)Linking executable $(BCYAN)$@$(RESET)\n"
 	$(CC) $(LDFLAGS) $(OBJECTS) -o $@
 
@@ -62,12 +59,14 @@ build/%.o: src/%.cpp $(INCLUDES) Makefile
 	@mkdir -p build
 	$(CC) -c $< $(CFLAGS) -o $@
 
+
+
 #--------------
 # Test scripts
 #--------------
 
 # Run program:
-run: $(EXECUTABLE) Makefile
+run: $(EXECUTABLE)
 	@mkdir -p res
 	./$(EXECUTABLE)
 
