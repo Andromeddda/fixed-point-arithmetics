@@ -32,6 +32,7 @@ int main(void) {
 	run_test("multiplication", 		test_multiplication);
 	run_test("rounding the product", test_multiplication_round);
 	run_test("division", 			test_division);
+	run_test("square root", 		test_sqrt);
 
 	return 0;
 }

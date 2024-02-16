@@ -21,13 +21,6 @@ class LongNumber {
 	bool ok() const; // check if number is valid
 
 public:
-	/////////////
-	// GETTERS //
-	/////////////
-
-	int get_sign();
-	vector<int> get_digits(); // return copy of digits
-
 	//////////////////
 	// CONSTRUCTORS //
 	//////////////////
@@ -79,7 +72,7 @@ public:
 	// Return a string form of long number
 	string ToString() const;
 
-	LongNumber sqrt() const;
+	LongNumber sqrt(unsigned int iterations = 13, const LongNumber& initial = LongNumber(0.1)) const;
 
 	// Return absolute value
 	LongNumber abs() const;
@@ -89,26 +82,5 @@ public:
 // UTILITIES FOR LONG NUMBERS //
 ////////////////////////////////
 
-// Print all elements of vector
-void vector_print(const vector<int>& vec);
-
 // User-defined floating-point literal
 LongNumber operator""_ln(const long double number);
-
-
-/////////////////////
-// KARATSUBA UTILS //
-/////////////////////
-
-// Recursive multiplication of two vectors
-vector<int> Karatsuba(vector<int>& left, vector<int>& right);
-
-// Multiply two vector<int> with complixity O(n^2)
-vector<int> naive_multiplication(vector<int>& left, vector<int>& right);
-
-// overload addition of vectors
-vector<int> operator+ (const vector<int>& x, const vector<int>& y);
-
-// overload subtraction of vectors
-vector<int> operator- (const vector<int>& x, const vector<int>& y);
-

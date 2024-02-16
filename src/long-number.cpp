@@ -7,18 +7,25 @@ using namespace std;
 #include "utils.hpp"
 #include "long-number.hpp"
 
-/////////////
-// GETTERS //
-/////////////
+///////////////////////////////////
+// KARATSUBA HELPERS DECLARATION //
+///////////////////////////////////
 
-int LongNumber::get_sign() {
-	return sign;
-}
+// Recursive multiplication of two vectors
+vector<int> Karatsuba(vector<int>& left, vector<int>& right);
 
-// Return copy of digits
-vector<int> LongNumber::get_digits() {
-	return vector<int>(digits);
-}
+// Multiply two vector<int> with complixity O(n^2)
+vector<int> naive_multiplication(vector<int>& left, vector<int>& right);
+
+// overload addition of vectors
+vector<int> add_vectors (const vector<int>& x, const vector<int>& y);
+
+// overload subtraction of vectors
+vector<int> subtract_vectors (const vector<int>& x, const vector<int>& y);
+
+/////////////////
+// OK FUNCTION //
+/////////////////
 
 // Check if number is valid
 bool LongNumber::ok() const {
@@ -426,7 +433,7 @@ LongNumber LongNumber::operator/ (const LongNumber& other) const {
 	LongNumber N = LongNumber(*this);
 	LongNumber D = LongNumber(other);
 
-	if (B.get_sign() == -1) {
+	if (B.sign == -1) {
 		return (-A) / (-B);
 	}
 
@@ -438,11 +445,11 @@ LongNumber LongNumber::operator/ (const LongNumber& other) const {
 
 	// Calculate first approximation of F between 0.1 and 1
 	LongNumber F = 1.0_ln;
-	if (B.get_digits().size() == PRECISION) {
+	if (B.digits.size() == PRECISION) {
 		// If B < 0.1, find such F that 0.1 <= F*B < 1
 		// multiplying F by ten for every zero in the front of B
 		int i = 0;
-		while (B.get_digits()[i] == 0) {
+		while (B.digits[i] == 0) {
 			F = F * 10.0_ln;
 			++i;
 		}
@@ -450,7 +457,7 @@ LongNumber LongNumber::operator/ (const LongNumber& other) const {
 	else {
 		// if B > 1, find such F that 0.1 < F*B < 1
 		// dividing F by ten for every digit in B
-		int i = B.get_digits().size();
+		int i = B.digits.size();
 		while (i > PRECISION) {
 			F = F * 0.1_ln;
 			--i;
@@ -495,15 +502,6 @@ LongNumber LongNumber::operator/ (const LongNumber& other) const {
 ////////////////////////////////
 // UTILITIES FOR LONG NUMBERS //
 ////////////////////////////////
-
-// Print all elements of vector
-void vector_print(const vector<int>& vec) {
-	std::cout << "{";
-	for (size_t i = 0; i < vec.size(); i++) {
-		cout << vec[i] << ((i + 1 == vec.size()) ? "" : ", ");
-	}
-	std::cout << "} " << endl;
-}
 
 // User-defined floating-point literal
 LongNumber operator""_ln(long double number) { 
@@ -552,6 +550,59 @@ LongNumber LongNumber::abs() const {
 	return result;
 }
 
+
+/* Input:
+		iterations (default = 20) - number of loops in Newton-Raphson method
+		initial (default = 0.1_ln) - initial guess of 1/sqrt
+*/		
+LongNumber LongNumber::sqrt(unsigned int iterations, const LongNumber& initial) const {
+	VERIFY_CONTRACT(this->ok(), "ERROR: cannot take square root of invalid number");
+
+	VERIFY_CONTRACT(sign == 1, "ERROR: cannot take square roor of negative number");
+
+	// Cpecial cases
+	if (*this == 0.0_ln) return LongNumber();
+	if (*this == 1.0_ln) return LongNumber(1.0);
+
+	// Copy number
+	LongNumber S = *this;
+
+	// Create initial guess
+	LongNumber X;
+
+	// if user doesn't specify iniital guess
+	if (initial == 0.1_ln) {
+		X = initial;
+		// Approximate initial guess of 1/sqrt(S) so that it would be ~ 10 ^ (0.5*lg(*this))
+		if (digits.size() > PRECISION) {
+			for (size_t i = 1; 2*i < digits.size() - PRECISION; ++i) {
+				X = X*0.1_ln;
+			}
+		}
+		else {
+			int i = 1;
+			while ((digits[i] == 0) && (digits[i-1] == 0)) {
+				X = X*10.0_ln;
+				i += 2;
+			}
+		}
+	}
+	else {
+		X = 1.0_ln / initial;
+		VERIFY_CONTRACT(X*X*S < 3.0_ln, "ERROR: entered bad initial, that may cause overflow");
+	}
+
+	// Use Goldshmidt method to calculate 1/sqrt(S)
+	LongNumber Y;
+	for (unsigned int i = 0; i < iterations; i++) {
+		Y = S*X*X;
+		if (Y == 1.0_ln) return X*S;
+		X = 0.5_ln*X*(3.0_ln - Y);
+	}
+
+	return X * S;
+}
+
 /////////////////////
 // KARATSUBA UTILS //
 /////////////////////
@@ -594,18 +645,18 @@ vector<int> Karatsuba(vector<int>& X, vector<int>& Y) {
 	vector<int> P1 = Karatsuba(Xl, Yl);
 	vector<int> P2 = Karatsuba(Xr, Yr);
 
-	vector<int> Xlr = Xl + Xr;
-	vector<int> Ylr = Yl + Yr;
+	vector<int> Xlr = add_vectors(Xl, Xr);
+	vector<int> Ylr = add_vectors(Yl, Yr);
 
 	// Calculate P3
-	vector<int> P3 = Karatsuba(Xlr, Ylr) - P1 - P2;
+	vector<int> P3 = subtract_vectors(subtract_vectors(Karatsuba(Xlr, Ylr), P1), P2);
 
 	// P1 = P1*qq
 	// P3 = P3*q
 	P1.insert(P1.end(), 2*k, 0);
 	P3.insert(P3.end(), k, 0);
 
-	vector<int> result = P1 + P3 + P2;
+	vector<int> result = add_vectors(add_vectors(P1, P3), P2);
 
 	return result;
 }
@@ -636,7 +687,7 @@ vector<int> naive_multiplication(vector<int>& left, vector<int>& right) {
 }
 
 // Overload addition of vectors
-vector<int> operator+ (const vector<int>& x, const vector<int>& y) {
+vector<int> add_vectors (const vector<int>& x, const vector<int>& y) {
 	// Copy
 	vector<int> d1 = vector<int>(x);
 	vector<int> d2 = vector<int>(y);
@@ -674,7 +725,7 @@ vector<int> operator+ (const vector<int>& x, const vector<int>& y) {
 }
 
 // Overload subtraction of vectors
-vector<int> operator- (const vector<int>& x, const vector<int>& y) {
+vector<int> subtract_vectors (const vector<int>& x, const vector<int>& y) {
 	// Copy
 	vector<int> d1 = vector<int>(x);
 	vector<int> d2 = vector<int>(y);

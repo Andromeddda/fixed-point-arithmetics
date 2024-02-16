@@ -49,15 +49,15 @@ EXECUTABLE = build/main
 #---------------
 
 # By default, build executable:
-default: $(EXECUTABLE)
+default: $(EXECUTABLE) Makefile
 
 # Link all object files together to obtain a binary:
-$(EXECUTABLE): $(OBJECTS)
+$(EXECUTABLE): $(OBJECTS) Makefile
 	@printf "$(BYELLOW)Linking executable $(BCYAN)$@$(RESET)\n"
 	$(CC) $(LDFLAGS) $(OBJECTS) -o $@
 
 # Compile an object file:
-build/%.o: src/%.cpp $(INCLUDES)
+build/%.o: src/%.cpp $(INCLUDES) Makefile
 	@printf "$(BYELLOW)Building object file $(BCYAN)$@$(RESET)\n"
 	@mkdir -p build
 	$(CC) -c $< $(CFLAGS) -o $@
@@ -67,7 +67,7 @@ build/%.o: src/%.cpp $(INCLUDES)
 #--------------
 
 # Run program:
-run: $(EXECUTABLE)
+run: $(EXECUTABLE) Makefile
 	@mkdir -p res
 	./$(EXECUTABLE)
 

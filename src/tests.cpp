@@ -15,59 +15,41 @@ bool test_empty_constructor() {
     return OK;
 }
 
-bool test_copy_constructor() {
-	try {			
-		LongNumber x = -1234.567_ln;
-		LongNumber y = LongNumber(x);
+bool test_copy_constructor() {			
+	LongNumber x = -1234.567_ln;
+	LongNumber y = LongNumber(x);
 
-    	return (y.get_sign() == x.get_sign()) && (x.get_digits() == y.get_digits());
-	}
-	catch (const std::exception& exc) {
-        return FAIL;
-    }
-    return OK;
+	return (y == x);
 }
 
 bool test_string_constructor() {
-	try {
-		LongNumber x = LongNumber("-1234.567");
-		vector<int> d = vector<int>(PRECISION + 4, 0);
-    	for (int i = 0; i < 7; i++) d[i] = i+1;
+	LongNumber x = LongNumber("-1234.567");
+	vector<int> d = vector<int>(PRECISION + 4, 0);
+	for (int i = 0; i < 7; i++) d[i] = i+1;
+	LongNumber y = LongNumber(d, false);
 
-    	return (x.get_sign() == -1) && (x.get_digits() == d);
-	}
-	catch (const std::exception& exc) {
-        return FAIL;
-    }
-    return OK;
+	return (x == y);
 }
 
-bool test_double_constructor() {
-	try {			
-		LongNumber x = LongNumber(-1234.567);
-		vector<int> d = vector<int>(PRECISION + 4, 0);
-    	for (int i = 0; i < 7; i++) d[i] = i+1;
+bool test_double_constructor() {		
+	LongNumber x = LongNumber(-1234.567);
+	vector<int> d = vector<int>(PRECISION + 4, 0);
+	for (int i = 0; i < 7; i++) d[i] = i+1;
 
-    	return (x.get_sign() == -1) && (x.get_digits() == d);
-	}
-	catch (const std::exception& exc) {
-        return FAIL;
-    }
-    return OK;
+	LongNumber y = LongNumber(d, false);
+
+	return (x == y);
+
 }
 
-bool test_ud_suffix_constructor() {
-	try {			
-		LongNumber x = -1234.567_ln;
-		vector<int> d = vector<int>(PRECISION + 4, 0);
-    	for (int i = 0; i < 7; i++) d[i] = i+1;
+bool test_ud_suffix_constructor() {			
+	LongNumber x = -1234.567_ln;
+	vector<int> d = vector<int>(PRECISION + 4, 0);
+	for (int i = 0; i < 7; i++) d[i] = i+1;
 
-    	return (x.get_sign() == -1) && (x.get_digits() == d);
-	}
-	catch (const std::exception& exc) {
-        return FAIL;
-    }
-    return OK;
+	LongNumber y = LongNumber(d, false);
+
+	return (x == y);
 }
 
 // TEST ToString
@@ -144,4 +126,10 @@ bool test_division() {
 	LongNumber res = (z / y) + 1234.5_ln;
 
 	return (res.abs() < LongNumber(vector<int>{1, 0}));
+}
+
+bool test_sqrt() {
+	LongNumber x = 9.8596_ln;
+
+	return x.sqrt() == 3.14_ln;
 }

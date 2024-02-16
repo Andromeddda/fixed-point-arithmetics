@@ -19,3 +19,4 @@ bool test_subtraction();
 bool test_multiplication();
 bool test_multiplication_round();
 bool test_division();
+bool test_sqrt();
