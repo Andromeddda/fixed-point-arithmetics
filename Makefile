@@ -1,9 +1,9 @@
- #----------
+#----------
 # Compiler
 #----------
 
 CC = g++
- 
+
 #-------------
 # Directories
 #-------------
@@ -21,13 +21,21 @@ CFLAGS = \
 	-Werror \
 	-Wextra \
 	-std=c++17 \
-	-O3 
+ 	-O3
+
+CFLAGS += -I $(INCDIR)
 
 # Ask the compiler to write dependency information in .d file
-DEPFLAGS = 	\
-	-MMD 	\
-	-MP 	\
+DEPFLAGS = \
+	-MM \
+	-MG \
+	-MP \
 	-MF $(DEPDIR)/$*.d
+
+# -MM for tracking "#include"-s
+# -MG for avoiding errors if file not found
+# -MP for mentioning all prerequisites as targets
+# -MF for writing dependencies in .d file
 
 #--------
 # Colors
@@ -44,16 +52,6 @@ RESET   = \033[0m
 #-------
 # Files
 #-------
-
-INCLUDES = \
-	includes/long-number.hpp \
-	includes/pi.hpp \
-	includes/test_system.hpp \
-	includes/tests.hpp \
-	includes/utils.hpp
-
-# Add "include" folder to header search path:
-CFLAGS += -I $(abspath includes)
 
 # List of sources:
 TEST_SRC = test.cpp
@@ -75,7 +73,6 @@ PI_EXECUTABLE = $(BUILD)/pi
 # Dependency files
 DEPFILES = $(SOURCES:%.cpp=$(DEPDIR)/%.d)
 
-
 #---------------
 # Build process
 #---------------
@@ -94,10 +91,21 @@ $(PI_EXECUTABLE): $(OBJECTS) $(PI_OBJ)
 	$(CC) $(LDFLAGS) $^ -o $@
 
 # Compile an object file:
-$(BUILD)/%.o: src/%.cpp $(INCLUDES) Makefile
+$(BUILD)/%.o: src/%.cpp
+$(BUILD)/%.o: src/%.cpp Makefile | $(DEPDIR)
 	@printf "$(BYELLOW)Building object file $(BCYAN)$@$(RESET)\n"
 	@mkdir -p $(BUILD)
+	@$(CC) $(DEPFLAGS) $< -c
 	$(CC) $(CFLAGS) $< -c -o $@
+
+# Create directory
+$(DEPDIR) : ; @mkdir -p $(DEPDIR)
+
+# Mention every .d file as a target so that make won't fail if it doesn't exist
+$(DEPFILES) : ;
+
+# Include all created dependencies in current makefile
+include $(wildcard $(DEPFILES))
 
 #-----------------
 # Run the program
@@ -112,7 +120,6 @@ test: $(TEST_EXECUTABLE)
 pi: $(PI_EXECUTABLE)
 	@mkdir -p res
 	./$(PI_EXECUTABLE)
-
 
 #-------
 # Other
