@@ -24,11 +24,11 @@ public:
 	// THE RULE OF FIVE
 	LongNumber(); 									// Construct 0.0
 
-	LongNumber(const LongNumber& other); 			// Copy constructor
-	LongNumber(LongNumber&& other);					// Move constructor
+	LongNumber(const LongNumber& other) = default; 			// Copy constructor
+	LongNumber(LongNumber&& other) = default;					// Move constructor
 
-	LongNumber& operator= (const LongNumber& other); // Copy assignment
-	LongNumber& operator= (LongNumber&& other);		// Move Assignment
+	LongNumber& operator= (const LongNumber& other) = default; // Copy assignment
+	LongNumber& operator= (LongNumber&& other) = default;		// Move Assignment
 
 	// MOVE CONSTRUCTORS
 	LongNumber(long double number); // Construct from double

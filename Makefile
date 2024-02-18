@@ -1,4 +1,20 @@
+ #----------
+# Compiler
+#----------
+
 CC = g++
+ 
+#-------------
+# Directories
+#-------------
+
+BUILD = build
+DEPDIR = $(BUILD)/deps
+INCDIR = includes
+
+#-------
+# Flags
+#-------
 
 CFLAGS = \
 	-Wall \
@@ -7,6 +23,11 @@ CFLAGS = \
 	-std=c++17 \
 	-O3 
 
+# Ask the compiler to write dependency information in .d file
+DEPFLAGS = 	\
+	-MMD 	\
+	-MP 	\
+	-MF $(DEPDIR)/$*.d
 
 #--------
 # Colors
@@ -25,50 +46,73 @@ RESET   = \033[0m
 #-------
 
 INCLUDES = \
-	includes/long-number.hpp 	\
-	includes/utils.hpp			\
-	includes/test_system.hpp	\
-	includes/tests.hpp	
-
+	includes/long-number.hpp \
+	includes/pi.hpp \
+	includes/test_system.hpp \
+	includes/tests.hpp \
+	includes/utils.hpp
 
 # Add "include" folder to header search path:
 CFLAGS += -I $(abspath includes)
 
 # List of sources:
-SOURCES = $(notdir $(wildcard src/*.cpp))
+TEST_SRC = test.cpp
+PI_SRC = pi.cpp
 
-OBJECTS = $(SOURCES:%.cpp=build/%.o)
+# Sources without main() function
+SOURCES = $(filter-out $(TEST_SRC) $(PI_SRC), $(notdir $(wildcard src/*.cpp)))
 
-EXECUTABLE = build/main
+# Object files:
+OBJECTS = $(SOURCES:%.cpp=$(BUILD)/%.o)
+
+TEST_OBJ = $(TEST_SRC:%.cpp=$(BUILD)/%.o)
+PI_OBJ = $(PI_SRC:%.cpp=$(BUILD)/%.o)
+
+# Executable files:
+TEST_EXECUTABLE = $(BUILD)/test
+PI_EXECUTABLE = $(BUILD)/pi
+
+# Dependency files
+DEPFILES = $(SOURCES:%.cpp=$(DEPDIR)/%.d)
+
 
 #---------------
 # Build process
 #---------------
 
-# By default, build executable:
-default: $(EXECUTABLE)
+# By default, build executables:
+default: $(TEST_EXECUTABLE) $(PI_EXECUTABLE)
 
-# Link all object files together to obtain a binary:
-$(EXECUTABLE): $(OBJECTS)
-	@printf "$(BYELLOW)Linking executable $(BCYAN)$@$(RESET)\n"
-	$(CC) $(LDFLAGS) $(OBJECTS) -o $@
+# Link all object files together to obtain a binary test:
+$(TEST_EXECUTABLE): $(OBJECTS) $(TEST_OBJ)
+	@printf "$(BYELLOW)Linking executable test $(BCYAN)$@$(RESET)\n"
+	$(CC) $(LDFLAGS) $^ -o $@
+
+# Link all object files together to obtain a binary test:
+$(PI_EXECUTABLE): $(OBJECTS) $(PI_OBJ)
+	@printf "$(BYELLOW)Linking executable pi $(BCYAN)$@$(RESET)\n"
+	$(CC) $(LDFLAGS) $^ -o $@
 
 # Compile an object file:
-build/%.o: src/%.cpp $(INCLUDES) Makefile
+$(BUILD)/%.o: src/%.cpp $(INCLUDES) Makefile
 	@printf "$(BYELLOW)Building object file $(BCYAN)$@$(RESET)\n"
-	@mkdir -p build
-	$(CC) -c $< $(CFLAGS) -o $@
+	@mkdir -p $(BUILD)
+	$(CC) $(CFLAGS) $< -c -o $@
 
+#-----------------
+# Run the program
+#-----------------
 
-
-#--------------
-# Test scripts
-#--------------
-
-# Run program:
-run: $(EXECUTABLE)
+# Run test:
+test: $(TEST_EXECUTABLE)
 	@mkdir -p res
-	./$(EXECUTABLE)
+	./$(TEST_EXECUTABLE)
+
+# Run pi
+pi: $(PI_EXECUTABLE)
+	@mkdir -p res
+	./$(PI_EXECUTABLE)
+
 
 #-------
 # Other
@@ -77,7 +121,7 @@ run: $(EXECUTABLE)
 clean:
 	@printf "$(BYELLOW)Cleaning build and resource directories$(RESET)\n"
 	rm -rf res
-	rm -rf build
+	rm -rf $(BUILD)
 
 # List of non-file targets:
-.PHONY: run clean default
+.PHONY: test pi clean default

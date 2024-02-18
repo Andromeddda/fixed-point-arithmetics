@@ -54,66 +54,6 @@ LongNumber::LongNumber() {
 	digits = std::vector<digit_t>(1, 0);
 }
 
-// Copy constructor
-LongNumber::LongNumber(const LongNumber& other) {
-	VERIFY_CONTRACT(other.ok(), "ERROR: unable to counstruct LongNumber from invalid origin");
-
-	// Copy sign
-	sign = other.sign; 
-	// Copy digits
-	digits = vector<digit_t>(other.digits);
-
-	VERIFY_CONTRACT(this->ok(), "ERROR: unable to counstruct LongNumber by copying");
-}
-
-// Move constructor
-LongNumber::LongNumber(LongNumber&& other) {
-	VERIFY_CONTRACT(other.ok(), "ERROR: unable to counstruct LongNumber from invalid origin");
-
-	// Copy sign
-	sign = other.sign; 
-	// Copy digits
-	digits = vector<digit_t>(other.digits);
-
-	// delete origin
-	other.digits.clear();
-	other.digits.resize(0);
-
-	VERIFY_CONTRACT(this->ok(), "ERROR: unable to counstruct LongNumber by moving");
-	VERIFY_CONTRACT(!other.ok(), "ERROR: move counstructor is note destructive for origin");
-}
-
-// Copy assignment
-LongNumber& LongNumber::operator= (const LongNumber& other) {
-	VERIFY_CONTRACT(other.ok(), "ERROR: unable to assign LongNumber to invalid origin");
-
-	sign = other.sign;
-	digits = vector<digit_t>(other.digits);
-	
-	VERIFY_CONTRACT(this->ok(), "ERROR: unable to assign LongNumber");
-
-	return *this;
-}
-
-// Move assignment
-LongNumber& LongNumber::operator= (LongNumber&& other) {
-	VERIFY_CONTRACT(other.ok(), "ERROR: unable to counstruct LongNumber from invalid origin");
-
-	// Copy sign
-	sign = other.sign; 
-	// Copy digits
-	digits = vector<digit_t>(other.digits);
-
-	// delete origin
-	other.digits.clear();
-	other.digits.resize(0);
-
-	VERIFY_CONTRACT(this->ok(), "ERROR: unable to assign LongNumber by moving");
-	VERIFY_CONTRACT(!other.ok(), "ERROR: move assignment is note destructive for origin");
-
-	return *this;
-}
-
 // Construct from string
 LongNumber::LongNumber(const string& str) {
 	int index = 0;
