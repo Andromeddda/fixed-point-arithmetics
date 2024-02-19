@@ -11,7 +11,7 @@
 
 #define VERIFY_CONTRACT(contract, message) 			\
 	if (!(contract)) { 								\
-		std::cout << SET_COLOR_RED << message << RESET_COLOR << std::endl; 			\
+		std::cout << SET_COLOR_RED << message << RESET_COLOR << std::endl; \
 		exit(1); 									\
 	}
 

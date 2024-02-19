@@ -21,7 +21,7 @@ CFLAGS = \
 	-Werror \
 	-Wextra \
 	-std=c++17 \
- 	-O3
+	-O3
 
 # Ask the compiler to write dependency information in .d file
 CFLAGS += -I $(INCDIR)

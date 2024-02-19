@@ -10,10 +10,11 @@ using namespace std;
 
 int main(void) {
 	unsigned N = 20;
-	std::cout << SET_COLOR_CYAN<< "Enter the number of decimal places of pi (less than 663): " << SET_COLOR_PURPLE;
+	std::cout << SET_COLOR_CYAN << "Enter the number of decimal places of pi (< " << MAX_PRECISION << ") : " << SET_COLOR_PURPLE;
 	int correct = scanf("%u", &N);
+
 	VERIFY_CONTRACT(correct == 1, "ERROR: incorrect input");
-	VERIFY_CONTRACT(N < 663, "ERROR: cannot count more than 662 digits correctly");
+	VERIFY_CONTRACT(N < MAX_PRECISION, "ERROR: cannot count more than " << MAX_PRECISION << " digits correctly");
 
 	clock_t start = clock();
 	LongNumber pi = Chudnovsky(N);
@@ -41,7 +42,7 @@ LongNumber Chudnovsky(unsigned N) {
 	// S(n) = sum of f(k)*(545140134*k + 13591409) with k = 1 to n
 	// f(0) = 1
 	// f(k) = f(k-1)*(1 - 6k)*(1 - 2k)*(5 - 6k) / 10939058860032000k^3
-	
+
 	const LongNumber Q = LongNumber("426880.0");
 	const LongNumber R = LongNumber("10005.0").sqrt();
 	const LongNumber C = LongNumber("13591409");
@@ -52,10 +53,10 @@ LongNumber Chudnovsky(unsigned N) {
 	LongNumber k = 1.0_ln;
 	LongNumber Fk = 1.0_ln;
 
-	// Precision N/12 obtained empirically.
+	// Precision N/10 obtained empirically.
 
 	if (N > 13) {
-		for (unsigned i = 1; i <= N / 12; i++) {
+		for (unsigned i = 1; i <= N / 10; i++) {
 			LongNumber k_inv = 1.0_ln / k;
 			Fk = Fk*(k_inv - 6.0_ln)*(k_inv - 2.0_ln)*(5.0_ln*k_inv - 6.0_ln)*I;
 			Sum = Sum + Fk*(D*k + C);

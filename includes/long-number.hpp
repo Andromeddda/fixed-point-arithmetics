@@ -68,7 +68,7 @@ public:
 	// Return a std::string form of long number
 	std::string ToString() const;
 
-	LongNumber sqrt(unsigned int iterations = 16, const LongNumber& initial = LongNumber(0.1)) const;
+	LongNumber sqrt(unsigned int iterations = 20, const LongNumber& initial = LongNumber(0.1)) const;
 
 	// Return absolute value
 	LongNumber abs() const;

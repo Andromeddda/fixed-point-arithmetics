@@ -20,6 +20,8 @@ const string pi_str = \
 59825349042875546873115956286388235378759375195778\
 18577805321712268066130019278766111959092164201989";
 
+#define MAX_PRECISION 993
+
 // Input: number of decimal places of pi to calculate (unsigned N).
 // Output: pi with given precision (LongNumber).
 LongNumber Chudnovsky(unsigned N);
