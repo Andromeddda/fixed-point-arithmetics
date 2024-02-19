@@ -28,8 +28,6 @@ CFLAGS += -I $(INCDIR)
 DEPFLAGS = -MT $@ -MMD -MP -MF $(DEPDIR)/$*.Td
 POSTCOMPILE = mv -f $(DEPDIR)/$*.Td $(DEPDIR)/$*.d && touch $@
 
-
-
 #--------
 # Colors
 #--------
