@@ -32,4 +32,4 @@ Unit testing of the library.
 Calculating digits of pi.
 ```sh
     make pi
-```          - 
+```
