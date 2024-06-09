@@ -14,7 +14,7 @@ int main(void) {
 	int correct = scanf("%u", &N);
 
 	VERIFY_CONTRACT(correct == 1, "ERROR: incorrect input");
-	VERIFY_CONTRACT(N < MAX_PRECISION, "ERROR: cannot count more than " << MAX_PRECISION << " digits correctly");
+	VERIFY_CONTRACT(N <= MAX_PRECISION, "ERROR: cannot count more than " << MAX_PRECISION << " digits correctly");
 
 	clock_t start = clock();
 	LongNumber pi = Chudnovsky(N);
