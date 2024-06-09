@@ -10,7 +10,7 @@ using namespace std;
 
 int main(void) {
 	unsigned N = 20;
-	std::cout << SET_COLOR_CYAN << "Enter the number of decimal places of pi (< " << MAX_PRECISION << ") : " << SET_COLOR_PURPLE;
+	std::cout << SET_COLOR_CYAN << "Enter the number of decimal places of pi (<= " << MAX_PRECISION << ") : " << SET_COLOR_PURPLE;
 	int correct = scanf("%u", &N);
 
 	VERIFY_CONTRACT(correct == 1, "ERROR: incorrect input");

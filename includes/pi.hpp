@@ -1,3 +1,4 @@
+// First 1000 digits of pi for verification and beautiful output
 const string pi_str = \
 "3.14159265358979323846264338327950288419716939937510\
 58209749445923078164062862089986280348253421170679\
@@ -20,7 +21,7 @@ const string pi_str = \
 59825349042875546873115956286388235378759375195778\
 18577805321712268066130019278766111959092164201989";
 
-#define MAX_PRECISION 993
+#define MAX_PRECISION 1000
 
 // Input: number of decimal places of pi to calculate (unsigned N).
 // Output: pi with given precision (LongNumber).

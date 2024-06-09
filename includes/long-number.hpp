@@ -5,7 +5,7 @@ typedef short digit_t;
 #include <vector>
 #include <string>
 
-#define PRECISION (1000)
+#define PRECISION (1020)
 #define KARATSUBA_MIN_LEN (100)
 
 // The number is represented as a big integer divided by 10^PRECISION 
