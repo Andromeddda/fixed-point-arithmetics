@@ -71,13 +71,6 @@ TestResult TestSystem::run_test(const char* name, TestScenario test) {
         return TIMEOUT;
     }
 
-    // ==============================================
-    // ====== NOTE FOR MR. VLADISLAV ALEINIK ========
-    // ==============================================
-    // The next code with cases was copypasted from
-    //		https://github.com/VladikNeVladik/hse-algorithms-seminars/blob/main/examples/17_the_rule_of_five/
-    // The previous code was thoughtfully rewritten (you can see it by ton of comments I left for myself)
-
     // Handle correct exit
     if (WIFEXITED(status))
     {
